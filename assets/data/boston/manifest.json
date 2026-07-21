@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-07-21T10:34:45+0900",
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "dataset": "ISLR2::Boston",
+  "rows": 506,
+  "variables": 13,
+  "response": "crim",
+  "predictors": ["zn", "indus", "chas", "nox", "rm", "age", "dis", "rad", "tax", "ptratio", "lstat", "medv"],
+  "sample_rows_identical": true,
+  "stage_status": {
+    "0": "PASS",
+    "1": "PASS",
+    "2": "PASS",
+    "3": "PASS",
+    "4": "PASS",
+    "5": "PASS",
+    "6": "PASS",
+    "7": "PASS",
+    "8": "PASS",
+    "9": "PASS"
+  },
+  "fixture_count": 30,
+  "triple_validation_count": 10,
+  "all_gates_pass": true
+}

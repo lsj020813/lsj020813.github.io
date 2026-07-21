@@ -1,0 +1,528 @@
+- number: 0
+  title: "연구질문과 분석 계약"
+  question: "무엇을 묻고, 어디까지 해석하며, 어떤 순서로 검증할 것인가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "아직 없음 — 데이터 열람 전 사전 계약"
+  output: "13개 변수, association-only 범위, 허용오차, 0→9 실행 순서"
+  flow: ["데이터를 보기 전", "질문·범위 미확정", "계약 객체 생성", "변수·순서·오차 고정"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 아직 없다. 미지: 어떤 결과와 설명변수를 쓸지 모른다. 지금 필요한 이유: 결과를 본 뒤 질문을 바꾸는 일을 막아야 한다. 더 일찍 할 수 없는 이유: 이 단계가 출발점이다. 더 늦으면 안 되는 이유: QC와 모형이 사후적으로 달라진다."
+    - title: "필요한 통계적 행위"
+      body: "crim을 결과변수로, 나머지 12개를 설명변수로 선언한다. complete-case 표본, association-only 해석, 1e-8 수치 허용오차와 0→9 실행 순서를 고정한다."
+    - title: "출력 contract(출력 계약)"
+      body: "analysis_contract.rds와 expected_variables.csv를 만든다. response, predictors, interpretation, tolerance, order가 필수 필드이며 변수 순서도 계약의 일부다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 crim+12 predictors와 해석 범위가 정확한 경우다. WARN은 허용오차가 계획보다 느슨한 경우다. FAIL은 변수 목록·순서·해석 범위가 달라진 경우이며 즉시 중단한다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "후보는 Base R list, checkmate, jsonvalidate다. list는 의존성이 없지만 스키마 오류 메시지가 약하고, jsonvalidate는 외부 JSON Schema에 강하지만 이번 R 객체에는 과하다. 유지보수성과 경량 의존성을 비교해 checkmate를 연구 구현으로 선택했다."
+    - title: "validation(검증)"
+      body: "최소 fixture의 기대값은 response='crim', predictor 수=12다. 수작업, Base R, checkmate 결과를 비교하고 response를 medv로 바꾼 단일 오류 fixture가 FAIL인지 확인한 뒤 Boston 실행을 허용한다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "QC가 검사할 변수명·순서·도메인 틀, 공통 표본 정의, association-only 문구와 모든 후속 단계의 허용오차를 넘긴다."
+  formula: '\mathcal{Q}=\{Y=\mathrm{crim},\;X_1,\ldots,X_{12},\;\text{association only}\}'
+  formula_label: "연구 계약 집합: 결과변수 crim, 열두 설명변수, 연관성에 한정된 해석"
+  symbols: "Y는 범죄율, X는 12개 지역 특성이다. 이 식은 효과를 추정한다는 뜻이 아니라 질문의 경계를 고정한다."
+  base_code: |
+    expected_variables <- c("crim", "zn", "indus", "chas", "nox", "rm",
+      "age", "dis", "rad", "tax", "ptratio", "lstat", "medv")
+    contract <- list(response = "crim",
+      predictors = setdiff(expected_variables, "crim"),
+      interpretation = "association_only", tol_numeric = 1e-8, order = 0:9)
+  research_code: |
+    checkmate::assert_character(contract$predictors,
+      len = 12, any.missing = FALSE, unique = TRUE)
+    checkmate::assert_choice(contract$interpretation, "association_only")
+    checkmate::assert_number(contract$tol_numeric, lower = 0, upper = 1e-8)
+  fixture_code: |
+    manual <- 12L
+    base <- length(contract$predictors)
+    research <- { checkmate::assert_character(contract$predictors, len = 12); 12L }
+    stopifnot(identical(manual, base), identical(base, research))
+  manual: "predictor 수 = 12"
+  base_result: "12"
+  research_result: "12"
+  fixtures: ["정상: 계약 그대로 → PASS", "WARN: tolerance를 1e-6으로 완화 → WARN", "FAIL: response를 medv로 변경 → FAIL"]
+  result_summary: "계약이 고정됐다. black은 현재 ISLR2::Boston에 없으므로 제외했고, 예측·인과 주장은 분석 범위 밖이다."
+  metrics: ["13 variables", "12 predictors", "tolerance 1e-8"]
+  result_file: "/assets/data/boston/expected_variables.csv"
+  gate_question: "왜 산점도를 보기 전에 해석 범위를 먼저 고정해야 할까?"
+  gate_answer: "결과를 본 뒤 질문·변수·기준을 바꾸는 연구자 자유도를 줄이고 뒤 단계의 PASS/FAIL 기준을 미리 정하기 위해서다."
+
+- number: 1
+  title: "데이터 QC와 공통 분석표본 동결"
+  question: "모든 후속 분석이 정말 같은 506개 지역과 같은 행 순서를 쓰는가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "13개 변수와 의미상 도메인 계약"
+  output: "검증된 506행 analysis_data와 .source_row"
+  flow: ["변수 계약 수신", "자료형·범위 미확인", "QC와 complete cases", "506행·행 순서 동결"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 변수와 범위가 정해졌다. 미지: 원자료가 그 계약을 만족하는지 모른다. 지금 필요한 이유: 잘못된 값과 표본 변화를 막아야 한다. 계약 전에는 검사 기준이 없어 더 일찍 할 수 없다. 회귀 뒤에 하면 모형마다 다른 표본을 이미 사용하게 된다."
+    - title: "필요한 통계적 행위"
+      body: "필수 변수·수치형·유한값·도메인·상수 predictor를 검사한다. NA와 중복은 WARN으로 기록하고 13개 변수 complete case를 한 번만 골라 원래 행 번호와 함께 동결한다."
+    - title: "출력 contract(출력 계약)"
+      body: "qc_summary.csv, variable_contracts.csv, analysis_data.csv를 만든다. 두 구현의 status, source_rows, complete_rows, excluded_rows, row_order_identical을 같은 열로 저장한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 모든 도메인이 맞고 complete case가 존재하는 경우다. NA·완전 중복·심한 불균형·가능한 극단값은 WARN이다. 변수 누락, 비수치, 비유한값, 도메인 위반, 상수 predictor, complete-case 0행은 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "checkmate, assertthat, assertr를 비교했다. assertthat은 간단하지만 갱신과 구조화된 검사 폭이 좁고, assertr는 파이프 친화적이나 의존성이 더 크다. 빠른 벡터 검사·경량 의존성·명확한 오류를 이유로 checkmate를 선택했다."
+    - title: "validation(검증)"
+      body: "3행 정상 fixture의 기대 complete_rows=3을 손으로 센다. Base R과 checkmate가 같은 행 벡터를 반환하는지 identical()로 확인한다. medv 하나를 NA로 바꾼 WARN과 chas 하나를 2로 바꾼 FAIL을 각각 실행한다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "이후 2~9는 오직 analysis_data 506행을 같은 순서로 사용한다. 표본을 다시 고르거나 모형별 na.omit을 허용하지 않는다."
+  formula: '\mathcal{I}=\{i:\operatorname{complete}(Y_i,X_{i1},\ldots,X_{i12})\}'
+  formula_label: "공통 분석 표본은 결과와 열두 설명변수가 모두 관측된 행의 집합"
+  symbols: "I는 모든 후속 분석이 공유하는 행 인덱스다. 이 데이터에서는 506개 전부가 포함됐다."
+  base_code: |
+    finite_or_na <- all(vapply(d[expected_variables],
+      function(x) all(is.finite(x) | is.na(x)), logical(1)))
+    rows <- which(complete.cases(d[expected_variables]))
+    analysis_data <- d[rows, c(expected_variables, ".source_row")]
+  research_code: |
+    checkmate::assert_data_frame(d, min.rows = 1)
+    checkmate::assert_names(names(d), must.include = expected_variables)
+    checkmate::assert_integerish(rows, lower = 1, any.missing = FALSE)
+  fixture_code: |
+    normal <- normal_qc
+    warn <- normal; warn$medv[2] <- NA
+    fail <- normal; fail$chas[1] <- 2
+    stopifnot(qc_base(normal)$status == "PASS",
+      qc_base(warn)$status == "WARN", qc_base(fail)$status == "FAIL")
+  manual: "complete rows = 3"
+  base_result: "3"
+  research_result: "3"
+  fixtures: ["정상 3행 → PASS", "medv[2]만 NA → WARN·2행 유지", "chas[1]만 2 → FAIL"]
+  result_summary: "Base R과 checkmate 모두 506개 행을 같은 순서로 선택했다. 제외된 행은 0개이며 이 표본을 이후 모든 분석에서 재사용한다."
+  metrics: ["506 / 506 complete", "0 excluded", "row order identical"]
+  result_file: "/assets/data/boston/qc_summary.csv"
+  gate_question: "모형마다 na.omit을 다시 호출하면 계수 비교가 왜 흐려질까?"
+  gate_answer: "계수 변화가 보정 때문인지, 분석 대상 지역이 달라졌기 때문인지 분리할 수 없기 때문이다."
+
+- number: 2
+  title: "기술통계와 변수 분포"
+  question: "각 변수의 중심·산포·치우침·이상값 후보는 어떤 모습인가?"
+  status: "PASS"
+  priority: "15,20"
+  input: "동결된 506행 공통 표본"
+  output: "13개 변수 요약표, chas 빈도, 분포 해석"
+  flow: ["506행 표본", "값의 규모·모양 미지", "요약통계·분포", "변환·그래프 해석의 기준"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 분석할 행이 고정됐다. 미지: 값의 범위와 비대칭성이 얼마나 큰지 모른다. 지금 필요한 이유: 뒤의 계수와 그래프를 올바른 단위로 읽기 위해서다. QC 전에는 잘못된 값이 요약을 오염시키고, 회귀 뒤에는 분포가 만든 현상을 뒤늦게 발견한다."
+    - title: "필요한 통계적 행위"
+      body: "수치 변수마다 n, 평균, 표준편차, 중앙값, 사분위수, 최소·최대를 계산한다. chas는 0/1 빈도와 비율을 별도로 집계하고 histogram과 boxplot으로 비대칭과 극단값 후보를 확인한다."
+    - title: "출력 contract(출력 계약)"
+      body: "descriptive.csv는 variable,n,mean,sd,median,q1,q3,min,max 열을 가진다. chas_frequency.csv와 02-distributions.svg가 같은 506행에서 생성돼야 한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 모든 변수에 유한한 요약값이 있는 경우다. 평균과 중앙값 차이 또는 극단값은 WARN으로 해석 주의를 붙인다. n 불일치, 전체 결측, 정의되지 않은 요약값은 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "summarytools, skimr, dplyr를 비교했다. 앞의 두 패키지는 풍부한 자동 보고서를 주지만 출력 스키마 통제가 약하거나 의존성이 크다. Base와 같은 정의를 명시적으로 재현하고 tidy 출력을 만들기 위해 dplyr을 선택했다."
+    - title: "validation(검증)"
+      body: "x=1:5의 평균 3, 중앙값 3, 표본표준편차 √2.5를 손으로 계산한다. Base R과 dplyr 값이 all.equal()인지 확인하고, 극단값 하나는 WARN, 전부 NA인 fixture는 FAIL인지 검사한다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "변수별 단위와 분포 특성, 특히 crim의 강한 오른쪽 꼬리를 관계 그래프와 회귀 진단의 해석 조건으로 넘긴다."
+  formula: 's=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}'
+  formula_label: "표본표준편차 정의"
+  symbols: "x-bar는 평균, s는 표본표준편차다. 범위가 다른 변수의 계수 크기를 단순 비교하면 안 되는 이유도 여기서 시작한다."
+  base_code: |
+    c(n = length(x), mean = mean(x), sd = sd(x), median = median(x),
+      q1 = quantile(x, .25), q3 = quantile(x, .75), min = min(x), max = max(x))
+    prop.table(table(analysis_data$chas))
+  research_code: |
+    dplyr::summarise(tibble::tibble(x), n = dplyr::n(), mean = mean(x),
+      sd = sd(x), median = median(x), q1 = quantile(x, .25),
+      q3 = quantile(x, .75), min = min(x), max = max(x))
+  fixture_code: |
+    x <- 1:5
+    manual <- c(mean = 3, median = 3, sd = sqrt(2.5))
+    base <- c(mean = mean(x), median = median(x), sd = sd(x))
+    stopifnot(isTRUE(all.equal(manual, base, tolerance = 1e-8)))
+  manual: "mean(1:5) = 3"
+  base_result: "3"
+  research_result: "3"
+  fixtures: ["x=1:5 → PASS", "100 하나 추가 → WARN", "모든 값 NA → FAIL"]
+  result_summary: "crim은 소수의 큰 값 때문에 오른쪽 꼬리가 길다. 따라서 평균만으로 전형적 지역을 설명하지 않고 중앙값·사분위수와 함께 읽는다."
+  metrics: ["crim mean 3.614", "crim median 0.257", "chas=1: 35 regions"]
+  result_file: "/assets/data/boston/descriptive.csv"
+  chart: "/assets/img/boston/02-distributions.svg"
+  chart_alt: "Boston 506개 지역의 crim 분포. 낮은 값에 관측치가 몰리고 오른쪽으로 긴 꼬리가 이어진다."
+  chart_caption: "질문: 범죄율은 대칭적인가? 관찰: 강한 오른쪽 꼬리다. 한계: 분포만으로 원인이나 관계 형태를 말할 수 없다."
+  gate_question: "crim의 평균이 중앙값보다 훨씬 크면 회귀 그래프에서 무엇을 조심해야 할까?"
+  gate_answer: "큰 범죄율 몇 개가 직선과 잔차를 강하게 끌 수 있으므로 영향도와 비선형성을 뒤에서 확인해야 한다."
+
+- number: 3
+  title: "crim과 각 설명변수의 관계 형태 탐색"
+  question: "직선이 첫 근사로 타당한가, 아니면 곡률·그룹 차이·영향점이 먼저 보이는가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "변수별 분포와 공통 표본"
+  output: "11개 산점도, chas 그룹 비교, 확증 전 시각 가설"
+  flow: ["분포 특성 수신", "두 변수 관계 형태 미지", "산점도·그룹 비교", "회귀식과 진단의 후보"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 변수의 단위와 분포를 안다. 미지: crim과 각 변수가 직선·곡선·그룹 차이 중 무엇으로 연결되는지 모른다. 지금 필요한 이유: 모형을 정하기 전 형태를 봐야 한다. QC 전에는 오류를 관계로 오인하고, 회귀 뒤에는 모형이 만든 선에 시선이 고정된다."
+    - title: "필요한 통계적 행위"
+      body: "11개 연속·지수형 predictor는 산점도에 선형선과 탐색용 LOESS를 구분해 겹친다. chas는 두 그룹의 crim 분포를 비교한다. 이 단계의 선과 상관은 확증검정이 아니다."
+    - title: "출력 contract(출력 계약)"
+      body: "relationship_shapes.csv는 variable,correlation,linear_slope를 가진다. 그래프는 질문·관찰·한계 캡션과 선형/LOESS 범례를 포함한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 모든 predictor가 같은 표본으로 그려진 경우다. 곡률·군집·고레버리지 후보는 WARN으로 다음 검정에 넘긴다. 상수축, 행 불일치, 선형선과 LOESS의 오표시는 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "Base graphics, lattice, ggplot2를 비교했다. lattice는 조건부 패널에 강하지만 생태계 확장성이 낮고 Base는 투명하지만 반복 스타일 관리가 어렵다. 레이어와 범례를 명시적으로 분리하는 ggplot2를 선택했다."
+    - title: "validation(검증)"
+      body: "x=1:5, y=1+2x의 상관 1을 손으로 기대한다. Base cor와 연구용 tidy 계산이 일치하는지 확인한다. 고레버리지 한 점은 WARN, 상수 predictor는 FAIL로 분류한다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "단순회귀에서 확인할 방향과 불확실성, 분석 8에서 검정할 곡률 후보, 분석 9에서 볼 영향점 후보를 넘긴다."
+  formula: 'r_{XY}=\frac{\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\sqrt{\sum_i(x_i-\bar{x})^2\sum_i(y_i-\bar{y})^2}}'
+  formula_label: "피어슨 상관계수 정의"
+  symbols: "r은 선형 동행 정도일 뿐 인과나 충분한 모형 적합성을 뜻하지 않는다. LOESS는 모양을 보기 위한 보조선이다."
+  base_code: |
+    plot(analysis_data[[v]], analysis_data$crim)
+    abline(lm(crim ~ analysis_data[[v]], data = analysis_data), col = "navy")
+    cor(analysis_data[[v]], analysis_data$crim)
+  research_code: |
+    ggplot2::ggplot(analysis_data, ggplot2::aes(.data[[v]], crim)) +
+      ggplot2::geom_point(alpha = .55) +
+      ggplot2::geom_smooth(method = "lm") +
+      ggplot2::geom_smooth(method = "loess", se = FALSE, linetype = 2)
+  fixture_code: |
+    x <- 1:5; y <- 1 + 2*x
+    manual <- 1
+    base <- cor(x, y)
+    research <- cor(tibble::tibble(x, y)$x, tibble::tibble(x, y)$y)
+    stopifnot(isTRUE(all.equal(manual, base)), isTRUE(all.equal(base, research)))
+  manual: "cor(x, 1+2x) = 1"
+  base_result: "1"
+  research_result: "1"
+  fixtures: ["완전 증가 직선 → PASS", "고레버리지 한 점 → WARN", "상수 predictor → FAIL"]
+  result_summary: "관계 형태는 predictor마다 다르고, lstat 예시에서도 선형선과 탐색용 곡선이 완전히 겹치지 않는다. 이 관찰은 분석 8의 nested F-test 대상이 된다."
+  metrics: ["11 scatterplots", "1 binary comparison", "exploratory only"]
+  result_file: "/assets/data/boston/relationship_shapes.csv"
+  chart: "/assets/img/boston/03-relationship-lstat.svg"
+  chart_alt: "lstat과 crim 산점도 위에 파란 선형 회귀선과 주황색 점선 LOESS가 표시되어 있다."
+  chart_caption: "질문: 직선이 충분한가? 관찰: 저·중 lstat 구간에서 곡률 후보가 보인다. 한계: 시각 탐색은 확증검정이 아니다."
+  gate_question: "LOESS가 직선과 다르다는 사실만으로 비선형성을 확정하면 안 되는 이유는?"
+  gate_answer: "탐색 과정의 우연과 평활 모수 영향을 배제할 수 없으므로 같은 표본의 nested F-test가 필요하다."
+
+- number: 4
+  title: "12개 단순선형회귀"
+  question: "다른 특성을 보정하지 않았을 때 각 predictor와 crim의 관계는 어느 방향·크기인가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "관계 형태 탐색과 12개 predictor"
+  output: "12개 비보정 계수·SE·t·p·95% CI·R²"
+  flow: ["시각 가설 수신", "비보정 효과량 미지", "12개 단순회귀", "다중회귀 비교 기준선"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 관계의 대략적 모양을 봤다. 미지: 각 선형 관계의 크기와 불확실성을 모른다. 지금 필요한 이유: 보정 전 기준선이 있어야 분석 7의 변화를 설명할 수 있다. 관계 탐색 전에는 선형식의 타당성을 못 보고, 다중회귀 뒤에는 비보정 기준을 잃는다."
+    - title: "필요한 통계적 행위"
+      body: "predictor마다 crim ~ Xj를 같은 506행으로 적합한다. 기울기, 표준오차, t, 양측 p-value, 95% 신뢰구간, R²를 한 행 스키마로 추출한다."
+    - title: "출력 contract(출력 계약)"
+      body: "simple_regression.csv는 12행이며 variable,estimate,std_error,statistic,p_value,conf_low,conf_high,r_squared를 가진다. forest plot은 0 기준선과 95% CI를 함께 보여준다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 12개 모델과 유한 계수가 모두 존재하는 경우다. 큰 잔차·낮은 R²·넓은 CI는 WARN이다. 표본 불일치, rank deficiency, 12행 미만 출력은 FAIL이다. p<.05 하나만으로 결론 내리지 않는다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "broom, parameters, modelsummary를 비교했다. parameters는 폭넓지만 의존성이 크고 modelsummary는 출판표에 강하다. 모델별 동일 스키마 추출과 후속 그래프 연결이 핵심이므로 broom을 선택했다."
+    - title: "validation(검증)"
+      body: "x=1:5, y=1+2x에서 기울기 2를 손으로 계산한다. lm()과 broom::tidy()가 tolerance 안에서 같은지 확인한다. 큰 잔차 하나는 WARN, complete pair 2개 미만은 FAIL로 검사한다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "12개 비보정 계수를 분석 7의 x축과 before 열로 넘긴다. 높은 단순 R²가 중첩 구조를 보정한 결과는 아님을 명시한다."
+  formula: 'Y_i=\beta_0+\beta_1X_i+\varepsilon_i,\qquad H_0:\beta_1=0\quad H_A:\beta_1\ne0'
+  formula_label: "단순선형회귀 모형과 기울기 양측 가설"
+  symbols: "β1은 X 한 단위 차이에 연결된 평균 crim 차이다. 다른 지역 특성을 함께 고려하지 않은 비보정 연관성이다."
+  base_code: |
+    fits <- setNames(lapply(predictors, function(v)
+      lm(reformulate(v, "crim"), data = analysis_data)), predictors)
+    sm <- summary(fits[[v]]); ci <- confint(fits[[v]])[2, ]
+  research_code: |
+    td <- broom::tidy(fits[[v]], conf.int = TRUE)[2, ]
+    gl <- broom::glance(fits[[v]])
+    cbind(td[c("term","estimate","std.error","statistic","p.value","conf.low","conf.high")],
+      r_squared = gl$r.squared)
+  fixture_code: |
+    x <- 1:5; y <- 1 + 2*x
+    fit <- lm(y ~ x); research <- broom::tidy(fit)
+    stopifnot(isTRUE(all.equal(2, unname(coef(fit)[2]), tolerance = 1e-8)),
+      isTRUE(all.equal(2, research$estimate[2], tolerance = 1e-8)))
+  manual: "known slope = 2"
+  base_result: "2"
+  research_result: "2"
+  fixtures: ["y=1+2x → PASS", "잔차 하나만 크게 변경 → WARN", "complete pair 2개 미만 → FAIL"]
+  result_summary: "비보정 분석에서 rad의 R²가 약 0.391로 가장 컸다. chas를 제외한 여러 변수가 유의했지만, 이는 predictor끼리 겹치는 구조를 아직 고려하지 않은 결과다."
+  metrics: ["12 models", "rad R² 0.391", "chas p 0.209"]
+  result_file: "/assets/data/boston/simple_regression.csv"
+  chart: "/assets/img/boston/04-simple-forest.svg"
+  chart_alt: "12개 단순회귀 기울기와 95퍼센트 신뢰구간을 변수별로 나열한 점-구간 그래프."
+  chart_caption: "질문: 보정 전 방향과 불확실성은? 관찰: 변수 단위가 달라 계수 크기 자체의 횡비교는 제한적이다. 한계: 교란·중첩을 보정하지 않았다."
+  gate_question: "nox의 큰 계수를 rad보다 강한 관계라고 바로 말할 수 없는 이유는?"
+  gate_answer: "변수 단위가 다르고 다른 특성을 보정하지 않았으므로 계수의 절대 크기만 직접 비교할 수 없다."
+
+- number: 5
+  title: "설명변수 간 중첩 구조"
+  question: "설명변수들이 서로 얼마나 겹쳐 움직이며, 단순회귀 계수를 함께 설명할 여지가 있는가?"
+  status: "PASS"
+  priority: "15,20"
+  input: "12개 비보정 관계"
+  output: "12×12 상관행렬과 |r|≥0.7 쌍"
+  flow: ["비보정 계수 수신", "predictor 중첩 미지", "상관행렬", "조정 계수 해석의 맥락"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 각 predictor의 비보정 관계를 안다. 미지: predictor끼리 같은 지역 구조를 얼마나 공유하는지 모른다. 지금 필요한 이유: 다중회귀 계수 변화를 예상해야 한다. 단순회귀 전에는 비교 기준이 없고, 다중회귀 뒤에는 부호 변화 이유를 사후 추측하게 된다."
+    - title: "필요한 통계적 행위"
+      body: "12개 predictor의 Pearson 상관행렬을 만들고 |r|≥0.7 쌍을 표시한다. heatmap은 방향과 크기를 보여주되 상관을 인과나 완전한 중복의 증거로 해석하지 않는다."
+    - title: "출력 contract(출력 계약)"
+      body: "correlation_matrix.csv는 144개 셀을 long format으로 저장한다. high_correlations.csv는 중복·대각을 제외한 |r|≥0.7 쌍만 포함하며 05-correlation.svg와 값이 일치해야 한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 대칭행렬·대각 1·유한값 조건을 만족하는 경우다. |r|≥0.7은 WARN으로 다음 단계에서 주의한다. 상수열, 비대칭, 대각 불일치, 표본 불일치는 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "Base cor, Hmisc::rcorr, psych::corr.test를 비교했다. 후자는 p-value·결측 처리 기능이 많지만 이번에는 동결 표본의 상관계수 자체가 핵심이다. Base cor를 계산 기준으로 유지하고 dplyr+ggplot2를 연구 출력 계층으로 선택했다."
+    - title: "validation(검증)"
+      body: "z=2x인 두 벡터의 상관 1을 손으로 기대한다. Base와 research long-table 변환 전후 값이 같은지 확인한다. |r|≥0.7은 WARN, 상수열 하나는 FAIL fixture다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "높은 상관쌍과 중첩 가설을 다중회귀 계수·표준오차·VIF 해석에 넘긴다. 변수 삭제 명령으로 넘기지는 않는다."
+  formula: '\operatorname{cor}(X_j,X_k)=\frac{\operatorname{cov}(X_j,X_k)}{s_j s_k}'
+  formula_label: "두 설명변수의 피어슨 상관"
+  symbols: "상관은 두 변수의 선형 동행을 요약한다. 높은 값은 조정 계수 불안정 가능성을 알리지만 자동 삭제 기준은 아니다."
+  base_code: |
+    cor_base <- cor(analysis_data[predictors])
+    stopifnot(isSymmetric(cor_base), all(diag(cor_base) == 1))
+    high <- which(abs(cor_base) >= .7 & upper.tri(cor_base), arr.ind = TRUE)
+  research_code: |
+    cor_long <- as.data.frame(as.table(cor_base)) |>
+      dplyr::rename(variable_x = Var1, variable_y = Var2, correlation = Freq)
+    ggplot2::ggplot(cor_long, ggplot2::aes(variable_x, variable_y, fill = correlation)) +
+      ggplot2::geom_tile()
+  fixture_code: |
+    x <- 1:5; z <- 2*x
+    manual <- 1; base <- cor(x, z)
+    research <- as.data.frame(as.table(cor(cbind(x, z))))$Freq[2]
+    stopifnot(isTRUE(all.equal(manual, base)), isTRUE(all.equal(base, research)))
+  manual: "cor(x, 2x) = 1"
+  base_result: "1"
+  research_result: "1"
+  fixtures: ["두 비상수 벡터 → PASS", "|r|≥0.7 → WARN", "상수열 하나 → FAIL"]
+  result_summary: "rad–tax가 r=0.910으로 가장 강하게 함께 움직였다. dis–nox는 r=-0.769였다. 이 구조는 다중회귀에서 계수와 표준오차가 크게 달라질 수 있음을 예고한다."
+  metrics: ["rad–tax 0.910", "dis–nox −0.769", "8 pairs |r|≥.7"]
+  result_file: "/assets/data/boston/high_correlations.csv"
+  chart: "/assets/img/boston/05-correlation.svg"
+  chart_alt: "12개 설명변수의 상관행렬 heatmap. rad와 tax가 진한 양의 상관으로 나타난다."
+  chart_caption: "질문: 어떤 변수가 겹쳐 움직이는가? 관찰: rad–tax가 가장 강하다. 한계: 상관은 인과도 완전한 정보 중복도 증명하지 않는다."
+  gate_question: "rad와 tax의 상관이 높다는 이유만으로 하나를 지우면 안 되는 이유는?"
+  gate_answer: "연구질문의 조건부 연관성을 바꾸고, 상관만으로 각 변수가 가진 독립 정보를 판단할 수 없기 때문이다."
+
+- number: 6
+  title: "12개 설명변수를 포함한 다중선형회귀"
+  question: "다른 11개 지역 특성을 같은 값으로 둘 때 각 predictor의 조정된 연관성은 남는가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "공통 표본, 비보정 계수, predictor 중첩 구조"
+  output: "13개 계수, CI·p, R²·adjusted R²·sigma"
+  flow: ["중첩 구조 수신", "조건부 관계 미지", "12변수 동시 모형", "조정 계수와 모형 적합도"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 비보정 관계와 predictor 중첩을 안다. 미지: 다른 특성을 함께 고려한 뒤 무엇이 남는지 모른다. 지금 필요한 이유: 연구질문의 ‘함께 고려한 뒤’를 직접 답해야 한다. 중첩 구조 전에는 변화 이유를 못 설명하고, 계수 비교 뒤에는 비교할 조정 계수가 없다."
+    - title: "필요한 통계적 행위"
+      body: "crim을 12개 predictor에 동시에 회귀한다. 계수·SE·t·p·95% CI와 R²·adjusted R²·sigma를 추출하고, 각 계수를 다른 11개 변수를 고정한 조건부 연관성으로 읽는다."
+    - title: "출력 contract(출력 계약)"
+      body: "multiple_regression.csv는 절편 포함 13행, model_fit.csv는 R²·adjusted R²·sigma·F·df·nobs를 갖는다. 모든 수치는 506행 모형 하나에서 나와야 한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 full-rank 모형과 유한 계수 13개가 있는 경우다. 넓은 CI·VIF 가능성·잔차 패턴은 WARN으로 진단 단계에 넘긴다. alias, 표본 변경, 출력 스키마 불일치는 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "broom, parameters, modelsummary를 같은 lm 객체에 적용하는 후보로 비교했다. 표 생성보다 계수와 glance 지표의 정규화가 우선이므로 broom::tidy/glance를 선택했다. Base summary/confint가 기준 계산이다."
+    - title: "validation(검증)"
+      body: "합성자료 y=1+2x+3z의 x 계수 2를 손으로 기대한다. lm과 broom 결과를 all.equal()로 확인한다. 높은 condition index는 WARN, x를 두 배 복제한 predictor는 FAIL이다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "12개 조정 계수와 p-value를 분석 7의 after 열로, fitted·residual·모형행렬을 분석 9의 진단 입력으로 넘긴다."
+  formula: 'Y_i=\beta_0+\sum_{j=1}^{12}\beta_jX_{ij}+\varepsilon_i'
+  formula_label: "열두 설명변수를 동시에 포함한 다중선형회귀"
+  symbols: "βj는 다른 11개 X가 같을 때 Xj 한 단위 차이와 연결된 평균 crim 차이다. 관찰자료이므로 인과효과가 아니다."
+  base_code: |
+    full_formula <- reformulate(predictors, "crim")
+    fit <- lm(full_formula, data = analysis_data)
+    coef_table <- summary(fit)$coefficients
+    ci <- confint(fit)
+  research_code: |
+    coefficients <- broom::tidy(fit, conf.int = TRUE)
+    fit_metrics <- broom::glance(fit)[c("r.squared", "adj.r.squared", "sigma",
+      "statistic", "p.value", "df", "df.residual", "nobs")]
+  fixture_code: |
+    y <- 1 + 2*x + 3*z
+    base <- lm(y ~ x + z)
+    research <- broom::tidy(base)
+    stopifnot(isTRUE(all.equal(2, unname(coef(base)["x"]))),
+      isTRUE(all.equal(2, research$estimate[research$term == "x"])))
+  manual: "known βx = 2"
+  base_result: "2"
+  research_result: "2"
+  fixtures: ["full-rank y=1+2x+3z → PASS", "condition index 상승 → WARN", "x의 완전 복제열 → FAIL"]
+  result_summary: "전체 모형의 R²는 0.449, adjusted R²는 0.436이다. 5% 기준에서 zn, dis, rad, medv가 조정 후에도 유의했으며 이는 조건부 연관성이지 인과효과가 아니다."
+  metrics: ["R² 0.449", "adjusted R² 0.436", "sigma 6.460"]
+  result_file: "/assets/data/boston/multiple_regression.csv"
+  gate_question: "rad의 조정 계수 0.612를 정확히 어떻게 말해야 할까?"
+  gate_answer: "다른 11개 predictor가 같은 지역들을 비교할 때 rad 한 단위 차이가 평균 crim 약 0.612 차이와 연관된다고 말한다."
+
+- number: 7
+  title: "단순회귀와 다중회귀 계수 비교"
+  question: "보정 전후 계수의 크기·부호·유의성이 어디서, 얼마나 바뀌었는가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "12개 비보정 계수와 12개 조정 계수"
+  output: "predictor별 delta·부호 반전·유의성 변화"
+  flow: ["두 계수표 수신", "변화 양상 미지", "동일 predictor 매칭", "중첩이 만든 변화 지도"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 비보정·조정 계수를 모두 얻었다. 미지: 어느 변수가 얼마나 달라졌는지 모른다. 지금 필요한 이유: 중첩 구조가 추정에 준 영향을 직접 보여줘야 한다. 두 모형 전에는 계산할 수 없고, 비선형성 뒤로 미루면 선형 계수 변화와 곡률 문제가 섞인다."
+    - title: "필요한 통계적 행위"
+      body: "predictor 이름으로 두 표를 1:1 매칭해 adjusted−unadjusted delta, 부호 반전, p<.05 상태 변화를 계산한다. x축 비보정, y축 조정 계수와 45도 선을 그린다."
+    - title: "출력 contract(출력 계약)"
+      body: "coefficient_comparison.csv는 12행이며 두 estimate·두 p-value·delta·sign_flip·significance_change를 갖는다. 누락·중복 predictor가 없어야 한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 12개 이름이 정확히 매칭되는 경우다. 부호 반전·큰 delta·유의성 변화는 WARN으로 해석한다. 이름 누락, 중복, 서로 다른 표본의 계수 비교는 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "Base merge, dplyr joins, data.table을 비교했다. data.table은 대규모 조인에 빠르지만 12행에는 과하고 Base merge는 투명하지만 검증 표현이 길다. 관계 검증이 명확한 dplyr join과 ggplot2를 선택했다."
+    - title: "validation(검증)"
+      body: "unadjusted=2, adjusted=3이면 delta=1을 손으로 계산한다. Base 뺄셈과 dplyr mutate가 일치하는지 확인한다. 부호 반전은 WARN, ghost predictor로 매칭 실패는 FAIL이다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "선형 조정 후에도 남은 관계와 크게 바뀐 계수를 비선형성·진단 해석에 넘긴다. 변화 자체를 오류나 인과 증거로 단정하지 않는다."
+  formula: '\Delta_j=\hat\beta_{j,\mathrm{adjusted}}-\hat\beta_{j,\mathrm{unadjusted}}'
+  formula_label: "predictor j의 조정 전후 계수 차이"
+  symbols: "Δ는 두 모형의 계수 차이다. 0에서 멀수록 함께 넣은 변수 구조가 계수 해석을 크게 바꿨다는 신호다."
+  base_code: |
+    comparison <- merge(simple[, c("variable", "estimate", "p_value")],
+      subset(multiple, term != "(Intercept)"), by.x = "variable", by.y = "term")
+    comparison$delta <- comparison$estimate.y - comparison$estimate.x
+  research_code: |
+    comparison <- dplyr::inner_join(simple, multiple, by = c("variable" = "term"),
+      suffix = c("_unadjusted", "_adjusted")) |>
+      dplyr::mutate(delta = estimate_adjusted - estimate_unadjusted,
+        sign_flip = sign(estimate_adjusted) != sign(estimate_unadjusted))
+  fixture_code: |
+    manual <- 1
+    base <- 3 - 2
+    research <- dplyr::mutate(tibble::tibble(before = 2, after = 3),
+      delta = after - before)$delta
+    stopifnot(identical(manual, base), identical(base, research))
+  manual: "3 − 2 = 1"
+  base_result: "1"
+  research_result: "1"
+  fixtures: ["12개 이름 완전 매칭 → PASS", "계수 부호 반전 → WARN", "ghost predictor 추가 → FAIL"]
+  result_summary: "age, indus, nox, ptratio, rm, tax, zn에서 부호가 뒤집혔다. nox는 31.249에서 −9.958로 크게 바뀌었고, 여러 변수의 유의성도 사라졌다. 중첩 구조를 무시한 단순회귀 해석이 얼마나 달라질 수 있는지 보여준다."
+  metrics: ["7 sign flips", "6 significance changes", "nox Δ −41.206"]
+  result_file: "/assets/data/boston/coefficient_comparison.csv"
+  chart: "/assets/img/boston/07-coefficient-comparison.svg"
+  chart_alt: "단순회귀 계수를 x축, 다중회귀 계수를 y축에 놓고 45도 기준선과 변수 이름을 표시한 산점도."
+  chart_caption: "질문: 보정 후 무엇이 달라졌나? 관찰: 여러 변수가 45도 선에서 멀고 7개는 부호가 바뀐다. 한계: 변화 원인을 한 상관쌍에만 귀속할 수 없다."
+  gate_question: "부호 반전이 발생하면 어느 모형이 틀렸다고 말해야 할까?"
+  gate_answer: "아니다. 두 모형이 서로 다른 질문, 즉 비보정 연관성과 다른 변수를 고정한 조건부 연관성을 답한다."
+
+- number: 8
+  title: "비선형성 검정"
+  question: "11개 연속·지수형 predictor의 관계를 직선 하나로 설명해도 충분한가?"
+  status: "PASS"
+  priority: "15,20"
+  input: "선형 계수와 관계 형태 후보"
+  output: "11개 linear vs raw cubic nested F-test"
+  flow: ["선형 모형 수신", "곡률의 확증 미완", "nested F-test", "선형 해석의 제한"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 선형 관계의 비보정·조정 결과를 안다. 미지: 직선의 함수형태가 충분한지 모른다. 지금 필요한 이유: 선형 계수 해석의 전제를 확인해야 한다. 관계 탐색 전에는 후보를 못 정하고, 진단 뒤로 미루면 함수형태 오류와 영향점 문제가 섞인다."
+    - title: "필요한 통계적 행위"
+      body: "chas를 제외한 11개 predictor에서 같은 표본의 선형모형과 raw cubic 모형을 적합하고 nested F-test로 추가 두 항을 검정한다. 선형선과 3차 곡선을 함께 그린다."
+    - title: "출력 contract(출력 계약)"
+      body: "nonlinear_tests.csv는 11행이며 variable,f_statistic,p_value,linear_r2,cubic_r2를 갖는다. 그래프와 표는 raw=TRUE 정의와 같은 506행을 사용한다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 11개 nested 비교가 같은 행·종속 모형으로 계산된 경우다. 추가항 p<.05는 WARN으로 선형성 제한을 표시한다. 고유 x<5, 비종속 모형, 표본 불일치는 FAIL이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "anova.lm, broom, car::Anova를 비교했다. car::Anova는 Type II/III 검정에 강하지만 여기서는 명시적 nested model 비교가 목적이다. Base anova를 기준으로 쓰고 broom::tidy로 동일 스키마를 추출한다."
+    - title: "validation(검증)"
+      body: "x=-3:3, y=x³에서 cubic residual sum of squares=0을 손으로 기대한다. anova.lm과 broom 결과가 일치하는지 확인한다. 추가항 유의는 WARN, 고유 x 네 개 미만은 FAIL이다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "직선 해석을 제한해야 할 predictor 목록과 cubic 적합값을 최종 답변과 잔차 진단의 맥락으로 넘긴다. 다항항을 과학적 기전으로 해석하지 않는다."
+  formula: 'Y_i=\beta_0+\beta_1X_i+\beta_2X_i^2+\beta_3X_i^3+\varepsilon_i'
+  formula_label: "raw cubic 다항회귀 모형"
+  symbols: "β2와 β3는 직선에 추가되는 곡률 성분이다. nested F-test는 둘을 함께 추가했을 때 적합이 개선되는지 묻는다."
+  base_code: |
+    linear <- lm(crim ~ lstat, data = analysis_data)
+    cubic <- lm(crim ~ poly(lstat, 3, raw = TRUE), data = analysis_data)
+    test <- anova(linear, cubic)
+  research_code: |
+    test_tidy <- broom::tidy(test)
+    ggplot2::ggplot(curve_data, ggplot2::aes(lstat, crim)) +
+      ggplot2::geom_line(ggplot2::aes(y = linear, color = "선형")) +
+      ggplot2::geom_line(ggplot2::aes(y = cubic, color = "3차"))
+  fixture_code: |
+    x <- -3:3; y <- x^3
+    linear <- lm(y ~ x); cubic <- lm(y ~ poly(x, 3, raw = TRUE))
+    manual_rss <- 0
+    stopifnot(isTRUE(all.equal(manual_rss, sum(residuals(cubic)^2), tolerance = 1e-20)),
+      isTRUE(all.equal(anova(linear, cubic)$RSS[2], broom::tidy(anova(linear, cubic))$rss[2])))
+  manual: "cubic RSS = 0"
+  base_result: "< 1e−20"
+  research_result: "< 1e−20"
+  fixtures: ["y=x³, 고유 x 7개 → PASS", "추가항 p<.05 → WARN", "고유 x 4개 미만 → FAIL"]
+  result_summary: "11개 연속·지수형 predictor 모두에서 cubic 추가항 p<.05였다. 이는 직선 하나가 충분하지 않을 수 있다는 경고이며, 다항항 자체를 현실의 기전으로 해석하지 않는다."
+  metrics: ["11 / 11 p<.05", "medv F 116.63", "same 506 rows"]
+  result_file: "/assets/data/boston/nonlinear_tests.csv"
+  chart: "/assets/img/boston/08-nonlinearity-lstat.svg"
+  chart_alt: "lstat과 crim 산점도 위에 회색 선형선과 파란 3차 다항곡선이 함께 표시되어 있다."
+  chart_caption: "질문: 직선이 충분한가? 관찰: lstat의 cubic 추가항 p=0.037. 한계: 통계적 곡률은 과학적 기전을 뜻하지 않는다."
+  gate_question: "cubic 항이 유의하면 왜 ‘세제곱 효과’라고 부르면 안 될까?"
+  gate_answer: "다항식은 관계 모양을 근사하는 기저이며 각 항을 독립적인 현실 기전으로 해석하기 어렵기 때문이다."
+
+- number: 9
+  title: "잔차·영향도·다중공선성 진단"
+  question: "선형모형은 어디에서 틀리고, 특정 지역이나 predictor 중첩이 결론을 얼마나 제한하는가?"
+  status: "PASS"
+  priority: "10,15,20"
+  input: "다중회귀 객체와 비선형성 경고"
+  output: "잔차·Q-Q·leverage·Cook's D·studentized residual·VIF"
+  flow: ["최종 선형모형", "오류 양상·영향도 미지", "잔차·영향·VIF", "제한이 붙은 최종 답변"]
+  rules:
+    - title: "질문의 필요성과 현재 단계의 필연성"
+      body: "이전 확정: 조정 계수와 곡률 경고를 안다. 미지: 잔차 분산·정규성·영향 관측치·공선성이 추론을 얼마나 흔드는지 모른다. 지금 필요한 이유: 최종 문장에 신뢰 범위를 붙여야 한다. 모형 적합 전에는 잔차가 없고, 최종 답변 뒤에 하면 과도한 확신이 먼저 게시된다."
+    - title: "필요한 통계적 행위"
+      body: "residuals vs fitted, Q-Q, Scale-Location, residuals vs leverage를 그리고 Cook's distance, studentized residual, leverage, VIF를 계산한다. 영향 관측치는 표시만 하고 자동 삭제하지 않는다."
+    - title: "출력 contract(출력 계약)"
+      body: "diagnostics.csv는 506행의 source_row,fitted,residual,studentized_residual,leverage,cooks_distance를 갖는다. vif.csv는 12행이며 variable,vif,status를 가진다."
+    - title: "PASS / WARN / FAIL 의사결정 규칙"
+      body: "PASS는 진단값이 모두 유한하고 행이 보존된 경우다. Cook's D>4/n, |studentized|>3, VIF≥5는 WARN이다. alias, 계산 불능, 행 매칭 실패는 FAIL이다. WARN 관측치는 삭제가 아니라 민감도 검토 대상이다."
+    - title: "도구 후보 조사와 최종 선택"
+      body: "Base influence 함수, car::vif, performance::check_model을 비교했다. performance는 종합 보고가 편하지만 의존성이 크고 정의 통제가 약하다. Base 진단을 기준으로 유지하면서 검증된 car::vif를 연구 구현으로 선택했다."
+    - title: "validation(검증)"
+      body: "두 predictor의 VIF=1/(1−r²)를 손으로 계산한다. 보조회귀 Base 값과 car::vif가 all.equal()인지 확인한다. Cook's D>4/n은 WARN, 완전 복제 predictor의 alias는 FAIL이다."
+    - title: "다음 단계로 고정·인계되는 것"
+      body: "모형이 틀리는 방식, 영향점 목록, VIF 범위를 최종 답변의 제한으로 넘긴다. 원자료 확인 없이 관측치를 삭제하거나 결론을 깨끗하게 만들지 않는다."
+  formula: '\mathrm{VIF}_j=\frac{1}{1-R_j^2},\qquad D_i=\frac{e_i^2}{p\,\widehat\sigma^2}\frac{h_{ii}}{(1-h_{ii})^2}'
+  formula_label: "분산팽창계수와 Cook's distance의 한 표현"
+  symbols: "Rj²는 Xj를 나머지 predictor로 설명한 보조회귀의 결정계수다. Di는 관측치 i가 전체 계수에 주는 영향을 요약한다."
+  base_code: |
+    diagnostics <- data.frame(fitted = fitted(fit), residual = residuals(fit),
+      studentized = rstudent(fit), leverage = hatvalues(fit), cooks = cooks.distance(fit))
+    vif_base <- sapply(predictors, function(v)
+      1 / (1 - summary(lm(reformulate(setdiff(predictors, v), v), analysis_data))$r.squared))
+  research_code: |
+    vif_research <- car::vif(fit)
+    augmented <- broom::augment(fit) |>
+      dplyr::select(.fitted, .resid, .std.resid, .hat, .cooksd)
+    stopifnot(isTRUE(all.equal(unname(vif_base), unname(vif_research[predictors]))))
+  fixture_code: |
+    r2 <- cor(x, z)^2
+    manual <- 1 / (1 - r2)
+    base <- 1 / (1 - summary(lm(x ~ z))$r.squared)
+    research <- unname(car::vif(lm(y ~ x + z))[1])
+    stopifnot(isTRUE(all.equal(manual, base)), isTRUE(all.equal(base, research)))
+  manual: "VIF = 1 / (1 − r²)"
+  base_result: "계산값 일치"
+  research_result: "계산값 일치"
+  fixtures: ["유한 진단값 → PASS", "Cook's D > 4/n → WARN", "완전 복제 predictor → FAIL"]
+  result_summary: "최대 VIF는 tax의 9.20, rad는 7.03으로 주의가 필요했다. Cook's distance 기준을 넘는 지역도 있어 계수는 영향점과 비선형성 경고를 함께 붙여 해석해야 한다. 자동 삭제는 하지 않았다."
+  metrics: ["max VIF tax 9.20", "rad VIF 7.03", "no automatic deletion"]
+  result_file: "/assets/data/boston/vif.csv"
+  chart: "/assets/img/boston/09-diagnostics.svg"
+  chart_alt: "다중회귀의 Residuals vs Fitted, Normal Q-Q, Scale-Location, Residuals vs Leverage 진단 패널."
+  chart_caption: "질문: 모형은 어떤 방식으로 틀리는가? 관찰: 잔차·영향·공선성 경고가 남는다. 한계: 진단은 자동 삭제 명령이 아니라 민감도 분석의 출발점이다."
+  gate_question: "Cook's distance가 큰 지역을 바로 지우면 안 되는 이유는?"
+  gate_answer: "측정오류인지 실제로 중요한 지역인지 원자료 확인 없이 알 수 없고, 삭제가 연구대상을 바꿀 수 있기 때문이다."

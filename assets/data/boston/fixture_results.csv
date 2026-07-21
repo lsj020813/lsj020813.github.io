@@ -1,0 +1,31 @@
+"stage","fixture","injected_error","expected","observed","expectation_match"
+0,"normal","none","PASS","PASS",TRUE
+0,"warn","tolerance widened to 1e-6","WARN","WARN",TRUE
+0,"fail","response changed to medv","FAIL","FAIL",TRUE
+1,"normal","none","PASS","PASS",TRUE
+1,"warn","one medv changed to NA","WARN","WARN",TRUE
+1,"fail","one chas changed to 2","FAIL","FAIL",TRUE
+2,"normal","x=1:5","PASS","PASS",TRUE
+2,"warn","single extreme but finite value","WARN","WARN",TRUE
+2,"fail","all values missing","FAIL","FAIL",TRUE
+3,"normal","perfect increasing line","PASS","PASS",TRUE
+3,"warn","single high-leverage point","WARN","WARN",TRUE
+3,"fail","constant predictor","FAIL","FAIL",TRUE
+4,"normal","y=1+2x","PASS","PASS",TRUE
+4,"warn","large residual at one row","WARN","WARN",TRUE
+4,"fail","fewer than three complete pairs","FAIL","FAIL",TRUE
+5,"normal","two nonconstant vectors","PASS","PASS",TRUE
+5,"warn","absolute correlation above 0.7","WARN","WARN",TRUE
+5,"fail","constant column","FAIL","FAIL",TRUE
+6,"normal","full-rank y=1+2x+3z","PASS","PASS",TRUE
+6,"warn","condition index elevated","WARN","WARN",TRUE
+6,"fail","perfect duplicate predictor","FAIL","FAIL",TRUE
+7,"normal","matched predictor names","PASS","PASS",TRUE
+7,"warn","coefficient sign reversal","WARN","WARN",TRUE
+7,"fail","unmatched predictor name","FAIL","FAIL",TRUE
+8,"normal","seven points from y=x^3","PASS","PASS",TRUE
+8,"warn","cubic improvement p<0.05","WARN","WARN",TRUE
+8,"fail","fewer than five unique x values","FAIL","FAIL",TRUE
+9,"normal","finite residual and leverage values","PASS","PASS",TRUE
+9,"warn","Cook distance above 4/n","WARN","WARN",TRUE
+9,"fail","aliased coefficient from duplicate predictor","FAIL","FAIL",TRUE
