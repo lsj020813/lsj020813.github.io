@@ -1,0 +1,286 @@
+<link rel="stylesheet" href="{{ '/assets/css/boston-presentation.css' | relative_url }}">
+
+<section class="boston-presentation" aria-labelledby="presentation-title">
+  <header class="presentation-hero">
+    <p class="presentation-kicker">ISLR2 · BOSTON · ANALYSIS MAP</p>
+    <h2 id="presentation-title">번호를 골라 설명하는 Boston 분석 발표</h2>
+    <p>
+      처음부터 끝까지 순서대로 읽을 필요는 없다. 발표에서 필요한 번호를 누르면 핵심 설명이 팝업으로 열리고,
+      더 자세한 통계 기준과 검증 방법은 아래 접기 메뉴에서 확인할 수 있다.
+    </p>
+    <div class="presentation-facts" aria-label="분석 핵심 정보">
+      <span><strong>506</strong>개 지역</span>
+      <span><strong>13</strong>개 변수</span>
+      <span><strong>12</strong>개 설명변수</span>
+      <span><strong>1</strong>개 공통 표본</span>
+    </div>
+  </header>
+
+  <aside class="presentation-route" aria-labelledby="route-title">
+    <div>
+      <p class="route-label" id="route-title">발표 길이에 맞춘 추천 번호</p>
+      <p><strong>3분 요약</strong> 0 → 1 → 4 → 6 → 7 → 9</p>
+      <p><strong>방법론 중심</strong> 0 → 1 → 5 → 8 → 9</p>
+      <p><strong>전체 설명</strong> 0부터 9까지 순서대로</p>
+    </div>
+    <p class="route-note">숫자는 결과 순위가 아니라 분석 순서다.</p>
+  </aside>
+
+  <nav class="stage-grid" aria-label="Boston 분석 단계 선택">
+    <button class="stage-card" type="button" data-stage-target="boston-stage-0">
+      <span class="stage-number">0</span><span><strong>연구 계약</strong><small>질문과 해석 범위</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-1">
+      <span class="stage-number">1</span><span><strong>QC와 표본</strong><small>같은 행을 끝까지</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-2">
+      <span class="stage-number">2</span><span><strong>기술통계</strong><small>분포를 먼저 읽기</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-3">
+      <span class="stage-number">3</span><span><strong>개별 관계</strong><small>그림으로 모양 확인</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-4">
+      <span class="stage-number">4</span><span><strong>단순회귀</strong><small>보정 전 기준선</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-5">
+      <span class="stage-number">5</span><span><strong>변수 중첩</strong><small>상관과 공선성</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-6">
+      <span class="stage-number">6</span><span><strong>다중회귀</strong><small>함께 넣었을 때</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-7">
+      <span class="stage-number">7</span><span><strong>계수 비교</strong><small>왜 달라졌을까</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-8">
+      <span class="stage-number">8</span><span><strong>비선형성</strong><small>직선으로 충분한가</small></span>
+    </button>
+    <button class="stage-card" type="button" data-stage-target="boston-stage-9">
+      <span class="stage-number">9</span><span><strong>모형 진단</strong><small>틀리는 방식 확인</small></span>
+    </button>
+  </nav>
+
+  <div class="presentation-controls" aria-label="세부 설명 제어">
+    <button type="button" data-details-action="open">세부 설명 모두 펼치기</button>
+    <button type="button" data-details-action="close">모두 접기</button>
+  </div>
+
+  <section class="stage-details" aria-label="단계별 세부 설명">
+    <details id="boston-stage-0" class="stage-detail">
+      <summary><span class="detail-number">0</span><span><strong>연구질문과 계약을 먼저 고정한다</strong><small>데이터를 보기 전에 바뀌면 안 되는 것들</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: Boston 지역의 특성은 범죄율과 어떤 관계를 보이는가?</p>
+        <p>
+          반응변수는 지역별 1인당 범죄율인 <code>crim</code>이다. 설명변수는 <code>zn</code>, <code>indus</code>,
+          <code>chas</code>, <code>nox</code>, <code>rm</code>, <code>age</code>, <code>dis</code>, <code>rad</code>,
+          <code>tax</code>, <code>ptratio</code>, <code>lstat</code>, <code>medv</code>까지 12개다.
+          이번 <code>ISLR2::Boston</code>에는 <code>black</code> 변수가 없으므로 분석 계약에서도 제외한다.
+        </p>
+        <div class="stage-columns">
+          <section><h3>고정할 것</h3><p>결과변수, 설명변수, 공통 표본, 유의수준, 신뢰수준, 수치 허용오차를 분석 전에 정한다.</p></section>
+          <section><h3>말하지 않을 것</h3><p>관찰자료에서 확인한 연관성을 인과효과로 바꾸어 말하지 않는다.</p></section>
+        </div>
+        <details class="inside-detail"><summary>왜 인과 해석을 피해야 하나</summary><p>산업 구조, 주거 환경, 교통 접근성처럼 함께 움직이는 지역 조건이 많다. 한 변수의 계수가 유의해도 그 변수가 범죄율을 직접 바꿨다고 단정할 수 없다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 변수 13개의 목록과 연관성 분석이라는 해석 범위.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-1" class="stage-detail">
+      <summary><span class="detail-number">1</span><span><strong>QC를 끝내고 공통 표본을 얼린다</strong><small>모형마다 사람이 바뀌지 않게</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 뒤의 모든 결과가 정말 같은 506개 지역을 보고 있는가?</p>
+        <p>
+          13개 분석 변수에 complete case인 행을 한 번만 골라 <code>analysis_data</code>로 저장한다.
+          이후 단순회귀, 다중회귀, 비선형성 검정이 모두 이 표본을 쓴다. 모형마다 결측행이 다르게 빠지면
+          계수 차이가 보정 때문인지 표본 변화 때문인지 구분하기 어렵다.
+        </p>
+        <div class="qc-grid">
+          <span><strong>chas</strong> 0 또는 1</span>
+          <span><strong>age · lstat</strong> 0–100</span>
+          <span><strong>rad</strong> 양의 정수형</span>
+          <span><strong>rm · ptratio</strong> 0보다 큼</span>
+          <span><strong>crim · nox · dis</strong> 음수 불가</span>
+          <span><strong>tax · medv</strong> 음수 불가</span>
+        </div>
+        <details class="inside-detail"><summary>QC fixture에서 일부러 실패시킬 값</summary><p><code>chas=2</code>, <code>age=101</code>, <code>crim=-1</code>, <code>rad=2.5</code>를 넣어 검사가 실제로 멈추는지 확인한다. 결측값 fixture는 실패가 아니라 제외 행 수를 기록하는 경고로 다룬다.</p></details>
+        <p class="stage-handoff"><strong>통과 기준:</strong> 필수 변수 존재, 범위 검사 통과, 분석 가능한 행 존재, 제외된 행 수 기록.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-2" class="stage-detail">
+      <summary><span class="detail-number">2</span><span><strong>회귀 전에 분포부터 읽는다</strong><small>평균 하나로는 보이지 않는 것</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 각 변수는 어떤 범위와 모양을 갖고 있는가?</p>
+        <p>
+          변수별로 표본 수, 결측 수, 평균, 표준편차, 중앙값, IQR, 최솟값과 최댓값을 같은 표에 모은다.
+          연속형 변수는 histogram과 boxplot을 함께 본다. <code>crim</code>처럼 한쪽 꼬리가 긴 변수는
+          평균만으로 대표하기 어렵고 일부 큰 값이 회귀선에 강하게 작용할 수 있다.
+        </p>
+        <div class="stage-columns">
+          <section><h3>표에서 볼 것</h3><p>범위 오류, 평균과 중앙값의 차이, 0이 많은 변수, 표본 수 불일치.</p></section>
+          <section><h3>그림에서 볼 것</h3><p>치우침, 여러 봉우리, 바닥·천장 효과, 멀리 떨어진 관측치.</p></section>
+        </div>
+        <details class="inside-detail"><summary>Base R과 연구용 그림을 맞추는 방법</summary><p>두 구현은 같은 bin 기준과 같은 분석 표본을 사용한다. 그림 모양이 비슷해 보이는지만 보지 않고, 요약통계 표의 값이 허용오차 안에서 일치하는지도 확인한다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 변환이나 강건한 확인이 필요한 변수의 후보 목록.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-3" class="stage-detail">
+      <summary><span class="detail-number">3</span><span><strong>개별 관계의 모양을 그림으로 본다</strong><small>회귀선보다 산점도가 먼저</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: <code>crim</code>과 각 설명변수의 관계는 정말 직선처럼 보이는가?</p>
+        <p>
+          연속형 변수는 산점도와 선형 추세선을 겹쳐 보고, <code>chas</code>처럼 두 집단인 변수는 집단별 분포를 비교한다.
+          상관계수 하나는 방향과 강도를 요약하지만 곡선, 군집, 영향점을 숨길 수 있으므로 그림과 함께 읽는다.
+        </p>
+        <details class="inside-detail"><summary>이 단계에서 확정하지 않는 것</summary><p>산점도의 모양만으로 유의성이나 독립적인 효과를 말하지 않는다. 여기서 찾은 패턴은 단순회귀와 비선형성 검정에서 다시 확인할 후보일 뿐이다.</p></details>
+        <p class="stage-handoff"><strong>발표 팁:</strong> 모든 그림을 보여주기보다 모양이 다른 2–3개 변수만 골라 비교한다.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-4" class="stage-detail">
+      <summary><span class="detail-number">4</span><span><strong>단순회귀 12개로 보정 전 기준선을 만든다</strong><small>유의한 변수 선발전이 아니다</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 다른 조건을 고려하지 않으면 각 변수는 범죄율과 어느 방향으로 연결되는가?</p>
+        <pre><code>crim = β0 + β1X + ε</code></pre>
+        <p>
+          설명변수를 하나씩 바꿔 12개의 모형을 적합한다. 각 행에는 회귀계수, 표준오차, t 통계량,
+          p-value, 95% 신뢰구간, R², 수정 R², 표본 수를 담는다. p-value만 남기면 관계의 크기와 불확실성을 놓치므로
+          계수와 신뢰구간을 함께 보여준다.
+        </p>
+        <details class="inside-detail"><summary>단변량 p-value로 변수를 고르지 않는 이유</summary><p>보정 전에는 약했던 관계가 다른 변수를 함께 넣은 뒤 나타날 수 있고, 반대로 강했던 관계가 공통 정보를 나누면서 약해질 수도 있다. 다중회귀에는 연구 계약에서 정한 12개 변수를 그대로 사용한다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 12개 비보정 계수표. 이 표가 7번 비교의 기준선이 된다.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-5" class="stage-detail">
+      <summary><span class="detail-number">5</span><span><strong>설명변수끼리 겹치는 정도를 본다</strong><small>한 지역 구조의 여러 얼굴</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 설명변수들이 서로 같은 정보를 나눠 갖고 있지는 않은가?</p>
+        <p>
+          산업지역 비율, 대기오염, 오래된 주택 비율, 고속도로 접근성, 세율은 서로 독립적으로 움직이지 않을 수 있다.
+          상관행렬과 산점도 행렬로 중첩 구조를 보고, 다중회귀에서는 VIF로 계수의 불안정 가능성을 확인한다.
+        </p>
+        <div class="stage-columns">
+          <section><h3>상관이 크면</h3><p>한 변수만 넣은 모형에서 다른 변수의 정보까지 대신 담을 수 있다.</p></section>
+          <section><h3>VIF가 크면</h3><p>계수의 표준오차가 커지고 부호나 크기가 표본에 민감해질 수 있다.</p></section>
+        </div>
+        <details class="inside-detail"><summary>공선성이 있다고 변수를 바로 지우지 않는 이유</summary><p>변수 선택은 연구질문과 측정 의미를 함께 봐야 한다. 자동 기준으로 제거하기 전에 어떤 정보를 잃는지, 계수 해석이 목적지 예측이 목적인지를 먼저 정한다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 다중회귀 계수 변화에 대한 해석 근거.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-6" class="stage-detail">
+      <summary><span class="detail-number">6</span><span><strong>12개 변수를 한 모형에 넣는다</strong><small>보정 뒤에 남는 조건부 관계</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 다른 지역 특성을 함께 고려한 뒤에도 각 관계가 남는가?</p>
+        <pre><code>crim ~ zn + indus + chas + nox + rm + age + dis
+       + rad + tax + ptratio + lstat + medv</code></pre>
+        <p>
+          이 모형의 계수는 나머지 변수를 일정하게 둔 조건부 연관성을 나타낸다. 실험에서 조건을 통제한 인과효과와는 다르다.
+          모형 전체의 R²와 수정 R², 잔차 표준오차, F 통계량을 확인하고 각 계수는 추정값과 95% 신뢰구간으로 읽는다.
+        </p>
+        <details class="inside-detail"><summary>계수 하나만 떼어 읽으면 생기는 문제</summary><p>측정 단위가 서로 다르고 설명변수끼리 겹친다. 계수의 크기만 비교하지 말고 단위, 신뢰구간, VIF, 단순회귀에서의 값까지 함께 봐야 한다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 12개 보정 계수와 모형 전체 적합도.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-7" class="stage-detail">
+      <summary><span class="detail-number">7</span><span><strong>비보정 계수와 보정 계수를 나란히 놓는다</strong><small>변화 자체가 결과다</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 함께 고려했을 때 어떤 계수가 작아지고, 커지고, 방향을 바꾸는가?</p>
+        <p>
+          비교표에는 단순회귀 계수, 다중회귀 계수, 절대 차이, 비율, 부호 변화 여부를 담는다.
+          계수 변화는 오류가 아니라 변수들이 공유하던 정보를 나눈 결과일 수 있다. 5번의 상관구조와 VIF를 함께 보여줘야 설명이 이어진다.
+        </p>
+        <div class="comparison-flow" aria-label="계수 비교 해석 순서">
+          <span>방향 확인</span><i>→</i><span>크기 비교</span><i>→</i><span>불확실성 확인</span><i>→</i><span>중첩 구조 연결</span>
+        </div>
+        <details class="inside-detail"><summary>발표에서 강조할 변화 세 가지</summary><p>크기가 크게 줄어든 변수, 부호가 바뀐 변수, 보정 뒤 신뢰구간이 0을 가로지르게 된 변수를 우선 골라 설명한다. 실제 대상은 결과표를 확인한 뒤 정한다.</p></details>
+        <p class="stage-handoff"><strong>해석 원칙:</strong> “효과가 사라졌다”보다 “다른 변수를 함께 고려하자 조건부 연관성이 약해졌다”라고 말한다.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-8" class="stage-detail">
+      <summary><span class="detail-number">8</span><span><strong>직선으로 충분한지 시험한다</strong><small>선형모형과 3차 다항모형 비교</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 설명변수가 한 단위 늘 때 범죄율이 늘 같은 양만큼 변하는가?</p>
+        <p>연속형 변수마다 같은 공통 표본으로 선형모형과 3차 다항모형을 적합하고 nested model F-test로 비교한다.</p>
+        <div class="equation-card">H<sub>0</sub>: β<sub>2</sub> = β<sub>3</sub> = 0</div>
+        <p>
+          귀무가설을 기각하면 현재 후보모형 안에서 곡률을 고려할 근거가 생긴다. 3차식이 유일한 참모형이라는 뜻은 아니다.
+          여러 변수에 같은 검정을 반복하므로 원래 p-value와 다중검정 보정값을 함께 기록한다.
+        </p>
+        <details class="inside-detail"><summary>nested model 비교에서 꼭 지킬 조건</summary><p>두 모형은 같은 행으로 적합해야 한다. 표본이 다르면 자유도와 잔차제곱합의 차이를 비선형항의 기여로 해석할 수 없다.</p></details>
+        <p class="stage-handoff"><strong>다음 단계로 넘길 것:</strong> 비선형항을 최종 모형에 넣을 변수와 그 근거.</p>
+      </div>
+    </details>
+
+    <details id="boston-stage-9" class="stage-detail">
+      <summary><span class="detail-number">9</span><span><strong>모형이 틀리는 방식을 확인한다</strong><small>잔차, 영향점, 민감도 분석</small></span></summary>
+      <div class="stage-content">
+        <p class="stage-question">발표에서 던질 질문: 결과가 몇 개 지역이나 깨진 가정에 기대고 있지는 않은가?</p>
+        <div class="diagnostic-grid">
+          <section><h3>Residuals vs Fitted</h3><p>남은 곡선 패턴과 평균 구조를 본다.</p></section>
+          <section><h3>Q-Q plot</h3><p>잔차 분포의 꼬리 이탈을 본다.</p></section>
+          <section><h3>Scale-Location</h3><p>적합값에 따라 잔차 폭이 달라지는지 본다.</p></section>
+          <section><h3>Leverage · Cook</h3><p>모형을 지나치게 끌고 가는 관측치를 찾는다.</p></section>
+        </div>
+        <p>
+          이상점이 보인다고 바로 삭제하지 않는다. 데이터 오류인지 실제로 드문 지역인지 구분하고,
+          전체 표본 결과와 해당 관측치를 제외한 민감도 분석을 나란히 비교한다.
+        </p>
+        <details class="inside-detail"><summary>최종 발표에서 남길 진단 자료</summary><p>대표 진단 그림, 영향점 목록, 제외 전후 핵심 계수 비교, 결론이 유지되는지에 대한 한 문장을 남긴다.</p></details>
+        <p class="stage-handoff"><strong>최종 통과 기준:</strong> 가정 위반과 영향점이 결론에 미치는 범위를 숨기지 않고 보고한다.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="validation-panel" aria-labelledby="validation-title">
+    <div>
+      <p class="presentation-kicker">THREE-WAY CHECK</p>
+      <h2 id="validation-title">수작업 기대값 = Base R = 연구용 구현</h2>
+      <p>
+        전체 데이터에 들어가기 전에 작은 fixture로 세 결과를 맞춘다. 표본 수, 계수, 신뢰구간, p-value,
+        모형 비교 결과가 정한 허용오차 안에서 같아야 다음 단계로 넘어간다.
+      </p>
+    </div>
+    <div class="validation-steps" aria-label="삼중 검증 순서">
+      <span>수작업 기대값</span><i>＝</i><span>Base R</span><i>＝</i><span>checkmate · broom · ggplot2</span>
+    </div>
+    <details class="inside-detail"><summary>두 구현을 유지하는 이유</summary><p>Base R은 계산 과정을 따라가기 좋고, 연구용 구현은 반복 분석과 결과 정리에 편하다. 패키지의 우열을 가리려는 게 아니라 두 방식이 같은 통계를 계산하는지 확인하려는 구성이다.</p></details>
+  </section>
+</section>
+
+<dialog id="boston-stage-dialog" class="stage-dialog" aria-labelledby="stage-dialog-title">
+  <div class="stage-dialog-shell">
+    <header>
+      <p class="presentation-kicker">PRESENTATION NOTE</p>
+      <button type="button" class="stage-dialog-close" aria-label="팝업 닫기">×</button>
+    </header>
+    <div id="stage-dialog-body"></div>
+  </div>
+</dialog>
+
+<dialog id="boston-rule-dialog" class="rule-dialog" aria-labelledby="rule-dialog-title">
+  <div class="rule-dialog-shell">
+    <header>
+      <div>
+        <p class="presentation-kicker" id="rule-dialog-stage"></p>
+        <h2 id="rule-dialog-title"></h2>
+      </div>
+      <button type="button" class="rule-dialog-close" aria-label="분석 규칙 팝업 닫기">×</button>
+    </header>
+    <div id="rule-dialog-body"></div>
+    <footer>
+      <button type="button" data-rule-nav="previous">이전 규칙</button>
+      <span id="rule-dialog-position" aria-live="polite"></span>
+      <button type="button" data-rule-nav="next">다음 규칙</button>
+    </footer>
+  </div>
+</dialog>
+
+<noscript>
+  <p class="presentation-noscript">JavaScript가 꺼져 있어 팝업 대신 아래 접기 메뉴를 이용할 수 있습니다.</p>
+</noscript>
+
+<script defer src="{{ '/assets/js/boston-presentation.js' | relative_url }}"></script>
