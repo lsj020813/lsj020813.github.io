@@ -14,7 +14,7 @@
     - title: "출력 contract(출력 계약)"
       body: "analysis_contract.rds와 expected_variables.csv를 만든다. response, predictors, interpretation, tolerance, order가 필수 필드이며 변수 순서도 계약의 일부다."
     - title: "PASS / WARN / FAIL 의사결정 규칙"
-      body: "PASS는 crim+12 predictors와 해석 범위가 정확한 경우다. WARN은 허용오차가 계획보다 느슨한 경우다. FAIL은 변수 목록·순서·해석 범위가 달라진 경우이며 즉시 중단한다."
+      body: "PASS는 crim+12 predictors와 해석 범위가 정확한 경우로 정했다. 허용오차가 계획보다 느슨하면 WARN으로 기록하고, 변수 목록·순서·해석 범위가 다르면 FAIL로 두어 원인을 확인한 뒤 다시 진행하기로 했다."
     - title: "도구 후보 조사와 최종 선택"
       body: "후보는 Base R list, checkmate, jsonvalidate다. list는 의존성이 없지만 스키마 오류 메시지가 약하고, jsonvalidate는 외부 JSON Schema에 강하지만 이번 R 객체에는 과하다. 유지보수성과 경량 의존성을 비교해 checkmate를 연구 구현으로 선택했다."
     - title: "validation(검증)"
@@ -72,7 +72,7 @@
     - title: "validation(검증)"
       body: "3행 정상 fixture의 기대 complete_rows=3을 손으로 센다. Base R과 checkmate가 같은 행 벡터를 반환하는지 identical()로 확인한다. medv 하나를 NA로 바꾼 WARN과 chas 하나를 2로 바꾼 FAIL을 각각 실행한다."
     - title: "다음 단계로 고정·인계되는 것"
-      body: "이후 2~9는 오직 analysis_data 506행을 같은 순서로 사용한다. 표본을 다시 고르거나 모형별 na.omit을 허용하지 않는다."
+      body: "이후 2~9에서는 analysis_data의 506행을 같은 순서로 사용했다. 계수 비교에 표본 변화가 섞이지 않도록 모형마다 표본을 다시 고르거나 na.omit을 반복하지 않았다."
   formula: '\mathcal{I}=\{i:\operatorname{complete}(Y_i,X_{i1},\ldots,X_{i12})\}'
   formula_label: "공통 분석 표본은 결과와 열두 설명변수가 모두 관측된 행의 집합"
   symbols: "I는 모든 후속 분석이 공유하는 행 인덱스다. 이 데이터에서는 506개 전부가 포함됐다."

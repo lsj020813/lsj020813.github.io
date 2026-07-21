@@ -3,9 +3,9 @@
 
 <article class="boston-report" id="boston-report" data-artifact-root="{{ '/assets/data/boston/' | relative_url }}">
   <header class="report-hero" aria-labelledby="report-title">
-    <p class="eyebrow">REPRODUCIBLE ANALYSIS NOTEBOOK · ISLR2</p>
-    <h1 id="report-title">한 번의 회귀가 아니라,<br><span>멈출 줄 아는 분석 시스템</span></h1>
-    <p class="hero-question">Boston의 여러 지역 특성은 범죄율과 어떠한 연관성을 보이며, 그 관계는 다른 지역 특성을 함께 고려한 뒤에도 유지되고 선형관계로 적절하게 설명될 수 있는가?</p>
+    <p class="eyebrow">수업 발표를 위한 분석 노트 · ISLR2</p>
+    <h1 id="report-title">Boston 데이터로 따라가 본<br><span>회귀분석의 흐름</span></h1>
+    <p class="hero-question">이번 발표에서는 Boston의 여러 지역 특성이 범죄율과 어떻게 연관되는지, 다른 특성을 함께 고려한 뒤에도 관계가 남는지, 그리고 직선으로 설명해도 괜찮은지를 차례로 살펴보았습니다.</p>
     <dl class="hero-facts" aria-label="분석 핵심 사실">
       <div><dt>표본</dt><dd>506개 지역</dd></div>
       <div><dt>계약</dt><dd>crim + 12 predictors</dd></div>
@@ -17,7 +17,7 @@
       <a href="#chapter-00">분석 읽기</a>
       <a href="{{ '/assets/data/boston/manifest.json' | relative_url }}">실행 manifest</a>
     </div>
-    <p class="execution-stamp"><span aria-hidden="true">●</span> R 4.6.1에서 실제 실행 · Base R = Research implementation · 2026-07-21</p>
+    <p class="execution-stamp"><span aria-hidden="true">●</span> R 4.6.1에서 직접 실행하고 두 구현의 결과를 비교했습니다 · 2026-07-21</p>
   </header>
 
   <nav class="chapter-navigator" aria-label="분석 0에서 9까지 장 이동">
@@ -33,9 +33,9 @@
 
   <section class="pipeline-overview" aria-labelledby="pipeline-title">
     <div>
-      <p class="section-label">ORDER IS EVIDENCE</p>
-      <h2 id="pipeline-title">앞 단계가 통과해야 다음 단계가 열린다</h2>
-      <p>표본을 먼저 고정하고, 분포와 관계를 본 뒤, 비보정·중첩·조정·함수형태·진단을 차례로 확인한다. 어느 단계든 FAIL이면 뒤의 Boston 실행과 게시를 중단한다.</p>
+      <p class="section-label">분석 순서</p>
+      <h2 id="pipeline-title">0번부터 9번까지 순서대로 확인해 보았습니다</h2>
+      <p>먼저 표본을 고정하고 분포와 관계를 살펴본 다음, 비보정 관계·변수 간 중첩·조정된 관계·함수형태·모형 진단으로 이어갔습니다. 앞 단계의 검증이 실패하면 뒤의 결과도 믿기 어렵다고 보고, 다음 분석을 진행하지 않도록 정했습니다.</p>
     </div>
     <ol class="pipeline-map" aria-label="분석 파이프라인">
       {% for chapter in site.data.boston_chapters %}
@@ -67,7 +67,7 @@
 
     <section class="rules-section" aria-labelledby="rules-title-{{ padded }}">
       <header class="section-heading-row">
-        <div><p class="section-label">SEVEN RULES</p><h3 id="rules-title-{{ padded }}">이 장을 통과시키는 7개 규칙</h3></div>
+        <div><p class="section-label">확인 기준 7가지</p><h3 id="rules-title-{{ padded }}">이 장에서 확인한 일곱 가지</h3></div>
         <button type="button" class="text-button" data-expand-rules="{{ chapter.number }}">모두 펼치기</button>
       </header>
       <div class="rule-stack">
@@ -124,11 +124,11 @@
         <div class="fixture-warn"><b>WARN fixture</b><span>{{ chapter.fixtures[1] }}</span></div>
         <div class="fixture-fail"><b>FAIL fixture</b><span>{{ chapter.fixtures[2] }}</span></div>
       </div>
-      <p class="stop-rule"><b>STOP</b> — 셋 중 한 값이라도 다르거나 FAIL fixture를 잡지 못하면 전체 Boston 분석과 후속 단계 실행 금지</p>
+      <p class="stop-rule"><b>확인 원칙</b> — 셋 중 한 값이라도 다르거나 FAIL fixture를 잡지 못하면 원인을 먼저 점검하고 다음 분석은 진행하지 않기로 했습니다.</p>
     </section>
 
     <section class="actual-results" aria-labelledby="results-title-{{ padded }}">
-      <div class="section-heading-row"><div><p class="section-label">BOSTON · ACTUAL RUN</p><h3 id="results-title-{{ padded }}">실제 506개 지역에서 나온 결과</h3></div><span class="status-badge status-pass"><span aria-hidden="true">✓</span> EXECUTED</span></div>
+      <div class="section-heading-row"><div><p class="section-label">BOSTON · 실제 분석</p><h3 id="results-title-{{ padded }}">506개 지역 자료에서 확인한 결과</h3></div><span class="status-badge status-pass"><span aria-hidden="true">✓</span> 실행 완료</span></div>
       <p class="result-lead">{{ chapter.result_summary }}</p>
       <ul class="metric-row" aria-label="핵심 결과">{% for metric in chapter.metrics %}<li>{{ metric }}</li>{% endfor %}</ul>
 
@@ -162,14 +162,14 @@
   {% endfor %}
 
   <section class="closing-section" id="final-answer" aria-labelledby="final-title">
-    <p class="section-label">FINAL ANSWER</p>
-    <h2 id="final-title">Boston의 지역 특성과 범죄율은 연결돼 있지만, 그 연결은 단순하지 않다</h2>
-    <p>비보정 분석에서는 여러 변수가 crim과 뚜렷하게 연결됐다. 그러나 12개 특성을 함께 고려하자 상당수 계수의 크기·부호·유의성이 바뀌었고, 5% 기준에서는 zn, dis, rad, medv가 남았다. 동시에 모든 연속·지수형 predictor에서 선형식보다 cubic 식이 더 나은 신호가 있었고, tax·rad의 VIF와 영향 관측치 경고도 확인됐다.</p>
-    <p>따라서 가장 정직한 결론은 “몇몇 지역 특성은 다른 특성을 고려한 뒤에도 범죄율과 연관되지만, 중첩·비선형성·영향점 때문에 단일 선형계수를 안정적인 인과효과로 읽을 수 없다”이다.</p>
+    <p class="section-label">분석을 마치며</p>
+    <h2 id="final-title">이번 분석에서 확인한 내용</h2>
+    <p>비보정 분석에서는 여러 변수가 crim과 뚜렷한 관계를 보였습니다. 다만 12개 특성을 함께 고려하자 상당수 계수의 크기·부호·유의성이 달라졌고, 5% 기준에서는 zn, dis, rad, medv가 남았습니다. 모든 연속·지수형 predictor에서 cubic 항을 추가했을 때 적합이 개선되는 신호가 있었으며, tax·rad의 VIF와 영향 관측치도 함께 확인할 필요가 있었습니다.</p>
+    <p>조심스럽게 요약하면, 몇몇 지역 특성은 다른 특성을 함께 고려한 뒤에도 범죄율과 연관되어 있었습니다. 하지만 변수 간 중첩, 비선형성, 영향 관측치가 남아 있으므로 이 결과를 하나의 안정적인 인과효과로 해석하기보다는 조건부 연관성으로 이해하는 편이 적절하다고 생각합니다.</p>
   </section>
 
   <section class="closing-grid" aria-label="해석 한계와 재현 방법">
-    <section id="limitations"><p class="section-label">LIMITATIONS</p><h2>해석 한계</h2><ul><li>관찰자료의 연관성이며 인과효과가 아니다.</li><li>지역 단위 결과를 개인에게 옮기는 생태학적 오류를 피해야 한다.</li><li>crim의 강한 비대칭과 비선형성은 선형 계수 해석을 제한한다.</li><li>영향 관측치는 원자료 확인 없이 자동 삭제하지 않았다.</li></ul></section>
+    <section id="limitations"><p class="section-label">해석할 때 주의할 점</p><h2>분석의 한계</h2><ul><li>관찰자료에서 확인한 연관성이므로 인과효과로 해석하지 않았습니다.</li><li>지역 단위 결과를 개인에게 그대로 적용하는 생태학적 오류를 주의해야 합니다.</li><li>crim의 강한 비대칭과 비선형성 때문에 선형 계수 해석에는 한계가 있습니다.</li><li>영향 관측치는 원자료를 더 확인하기 전에는 자동으로 제외하지 않았습니다.</li></ul></section>
     <section id="reproduce"><p class="section-label">REPRODUCE</p><h2>재현 방법</h2><ol><li>R 4.6.1과 필요한 패키지를 준비한다.</li><li>저장소 루트에서 <code>Rscript analysis/boston_pipeline.R</code>을 실행한다.</li><li><code>manifest.json</code>의 <code>all_gates_pass</code>가 true인지 확인한다.</li><li>Jekyll을 빌드하면 정적 CSV·JSON·SVG가 본문에 연결된다.</li></ol></section>
   </section>
 
