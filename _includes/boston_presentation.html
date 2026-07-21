@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="{{ '/assets/css/boston-presentation.css' | relative_url }}?v=20260721c">
+<link rel="stylesheet" href="{{ '/assets/css/boston-presentation.css' | relative_url }}?v=20260721d">
 <link rel="stylesheet" href="{{ '/assets/vendor/katex/katex.min.css' | relative_url }}">
 
 <article class="boston-report" id="boston-report" data-artifact-root="{{ '/assets/data/boston/' | relative_url }}">
@@ -52,7 +52,7 @@
     <header class="chapter-header">
       <div class="chapter-number" aria-hidden="true">{{ padded }}</div>
       <div class="chapter-heading">
-        <div class="chapter-meta"><span>ANALYSIS {{ padded }}</span><span class="status-badge status-pass"><span aria-hidden="true">✓</span> {{ chapter.status }}</span><button type="button" class="exercise-part-button" data-exercise-open="{{ chapter.exercise_part }}">{% if chapter.exercise_part == '확장' %}15번에서 확장{% else %}문제 {{ chapter.exercise_part }} 답안{% endif %}</button></div>
+        <div class="chapter-meta"><span>ANALYSIS {{ padded }}</span><span class="status-badge status-pass"><span aria-hidden="true">✓</span> EXECUTION STATUS: {{ chapter.execution_status }}</span>{% if chapter.model_adequacy %}<span class="status-badge status-warn"><span aria-hidden="true">!</span> MODEL ADEQUACY: {{ chapter.model_adequacy }}</span>{% endif %}<button type="button" class="exercise-part-button" data-exercise-open="{{ chapter.exercise_part }}">{% if chapter.exercise_part == '확장' %}15번에서 확장{% else %}문제 {{ chapter.exercise_part }} 답안{% endif %}</button></div>
         <h2 id="chapter-title-{{ padded }}">{{ chapter.title }}</h2>
         <p>{{ chapter.question }}</p>
       </div>
@@ -65,6 +65,19 @@
     <div class="logic-flow" aria-label="왜 지금 이 분석인가">
       {% for item in chapter.flow %}<div><span>{{ forloop.index }}</span><p>{{ item }}</p></div>{% endfor %}
     </div>
+
+    {% if chapter.number == 0 %}
+    <aside class="status-system" aria-labelledby="status-system-title">
+      <div><p class="section-label">두 축의 상태 체계</p><h3 id="status-system-title">실행 성공과 모형 적절성을 구분합니다</h3><p>이 글의 상태 배지는 코드·산출물의 완결성과 통계모형의 적절성을 서로 다른 축으로 기록합니다.</p></div>
+      <dl class="status-definitions">
+        <div><dt><span class="status-badge status-pass">EXECUTION PASS</span></dt><dd>코드가 오류 없이 실행되었고, 예정된 QC 및 산출물 계약을 충족함.</dd></div>
+        <div><dt><span class="status-badge status-fail">EXECUTION FAIL</span></dt><dd>코드 실행, 입력 무결성, 분석 표본 또는 필수 산출물에 문제가 있어 다음 단계 진행이 불가능함.</dd></div>
+        <div><dt><span class="status-badge status-pass">MODEL ADEQUACY PASS</span></dt><dd>현재 확인한 진단 범위에서 중대한 모형 위반 신호가 발견되지 않음.</dd></div>
+        <div><dt><span class="status-badge status-warn">MODEL ADEQUACY WARN</span></dt><dd>분석 결과는 생성되었지만 비선형성, 공선성, 영향 관측치, 잔차 구조 등의 주의사항이 존재함.</dd></div>
+        <div><dt><span class="status-badge status-fail">MODEL ADEQUACY FAIL</span></dt><dd>현재 모형을 최종 해석의 근거로 사용하기 어려운 중대한 문제가 확인됨.</dd></div>
+      </dl>
+    </aside>
+    {% endif %}
 
     <section class="rules-section" aria-labelledby="rules-title-{{ padded }}">
       <header class="section-heading-row">
@@ -154,6 +167,74 @@
       </div>
     </section>
 
+    {% if chapter.number == 4 %}
+    <figure class="projection-figure" aria-labelledby="projection-title projection-caption">
+      <header><p class="section-label">GEOMETRIC VIEW</p><h3 id="projection-title">단순회귀와 다중회귀를 정사영으로 이해하기</h3></header>
+      <div class="projection-panels">
+        <section class="projection-panel">
+          <h4><span>A</span> 단순회귀</h4>
+          <svg viewBox="0 0 360 230" role="img" aria-label="중심화된 범죄율 벡터가 세 설명변수 방향으로 각각 따로 정사영되는 도식">
+            <defs><marker id="arrow-a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+            <g class="axis-lines"><path d="M45 190 L315 190"/><path d="M45 190 L245 50"/><path d="M45 190 L120 35"/></g>
+            <g class="axis-labels"><text x="318" y="195">x̃₁</text><text x="248" y="48">x̃₂</text><text x="104" y="28">x̃₃</text></g>
+            <path class="vector-y" d="M45 190 L280 72" marker-end="url(#arrow-a)"/><text class="vector-label" x="286" y="68">ỹ</text>
+            <g class="projection-lines"><path d="M280 72 L280 190"/><path d="M280 72 L240 54"/><path d="M280 72 L111 54"/></g>
+            <g class="projection-points"><circle cx="280" cy="190" r="5"/><circle cx="240" cy="54" r="5"/><circle cx="111" cy="54" r="5"/></g>
+          </svg>
+          <div class="projection-math"><span>ỹ = y − ȳ1</span><span>x̃<sub>j</sub> = x<sub>j</sub> − x̄<sub>j</sub>1</span><span>ŷ<sup>(j)</sup> = proj<sub>x̃<sub>j</sub></sub>(ỹ)</span></div>
+          <p>범죄율 벡터를 각 지역특성 벡터 방향으로 하나씩 정사영하여, 각 변수 방향에서 보이는 비보정 선형 성분을 측정합니다.</p>
+          <strong>각 지역특성의 축에서 범죄율을 따로 바라봅니다.</strong>
+        </section>
+
+        <section class="projection-panel">
+          <h4><span>B</span> 설명변수 방향의 중첩</h4>
+          <svg viewBox="0 0 360 230" role="img" aria-label="세 설명변수 방향이 직교하지 않고 서로 가까이 놓여 공유 정보를 중복해 담는 도식">
+            <defs><marker id="arrow-b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+            <path class="shared-area" d="M70 188 Q145 108 280 60 Q197 127 305 102 Q180 155 70 188Z"/>
+            <g class="overlap-vectors"><path d="M70 188 L304 102" marker-end="url(#arrow-b)"/><path d="M70 188 L280 60" marker-end="url(#arrow-b)"/><path d="M70 188 L215 38" marker-end="url(#arrow-b)"/></g>
+            <g class="axis-labels"><text x="307" y="101">x₁</text><text x="283" y="58">x₂</text><text x="202" y="31">x₃</text></g>
+            <text class="shared-label" x="167" y="122">공유 정보</text>
+            <path class="right-angle-reference" d="M76 177 L87 183 L81 194"/>
+            <text class="note-label" x="86" y="211">서로 직교하지 않음</text>
+          </svg>
+          <div class="projection-math"><span>y ≠ Σ<sub>j</sub> proj<sub>x<sub>j</sub></sub>(y)</span></div>
+          <p>설명변수들이 서로 직교하지 않기 때문에 각 단순회귀의 정사영에는 공유 정보가 중복될 수 있습니다. 따라서 변수별 결과를 더해도 범죄율 벡터가 독립적인 최소 단위로 분해되지는 않습니다.</p>
+          <strong>각 축의 결과에는 서로 겹치는 정보가 있습니다.</strong>
+        </section>
+
+        <section class="projection-panel">
+          <h4><span>C</span> 다중회귀</h4>
+          <svg viewBox="0 0 360 230" role="img" aria-label="범죄율 벡터가 모든 설명변수가 함께 만드는 Col X 부분공간에 정사영되고 잔차가 남는 도식">
+            <defs><marker id="arrow-c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+            <path class="column-space" d="M35 175 L250 210 L330 105 L115 70 Z"/>
+            <text class="space-label" x="58" y="170">Col(X)</text>
+            <g class="space-vectors"><path d="M90 174 L275 131" marker-end="url(#arrow-c)"/><path d="M90 174 L188 90" marker-end="url(#arrow-c)"/><path d="M90 174 L304 175" marker-end="url(#arrow-c)"/></g>
+            <path class="vector-y" d="M90 174 L250 35" marker-end="url(#arrow-c)"/><text class="vector-label" x="254" y="32">y</text>
+            <path class="residual-vector" d="M250 35 L235 140" marker-end="url(#arrow-c)"/><text class="residual-label" x="255" y="91">e</text>
+            <circle class="projection-point" cx="235" cy="140" r="6"/><text class="projection-label" x="218" y="159">ŷ</text>
+          </svg>
+          <div class="projection-math"><span>ŷ = proj<sub>Col(X)</sub>(y)</span><span>e = y − ŷ</span></div>
+          <p>다중회귀는 각 설명변수를 따로 보는 것이 아니라, 모든 설명변수가 함께 만드는 공동공간에 범죄율 벡터를 정사영합니다.</p>
+          <strong>서로 겹치는 축들을 동시에 고려합니다.</strong>
+        </section>
+      </div>
+      <figcaption id="projection-caption">단순회귀는 범죄율이라는 하나의 벡터를 각 지역특성의 축에서 따로 바라보는 작업입니다. 다만 지역특성 벡터들은 서로 직교하지 않으므로, 각 결과는 독립적인 성분 분해가 아닙니다. 다중회귀는 이 축들의 중첩을 함께 고려하여 범죄율 벡터를 설명변수들의 공동공간에 정사영합니다.<b>따라서 단순회귀는 변수 선택을 위한 예선이 아니라, 보정 전 관계를 기록하여 이후 다중회귀 계수와 비교하기 위한 기준선입니다.</b></figcaption>
+    </figure>
+    {% endif %}
+
+    {% if chapter.number == 8 %}
+    <aside class="research-extension" aria-labelledby="adjusted-nonlinearity-title">
+      <div class="section-heading-row"><div><p class="section-label">연구 확장 · 후속 분석 설계</p><h3 id="adjusted-nonlinearity-title">보정 비선형성 검정은 별도로 설계합니다</h3></div><span class="status-badge status-warn">NOT RUN</span></div>
+      <p>Exercise 15(d)의 위 결과는 각 설명변수와 범죄율 사이의 <b>비보정 관계</b>에서 선형모형이 충분한지를 평가합니다. 여기서 발견된 곡률이 다른 지역특성을 함께 보정한 다중모형에서도 유지되는지는 별도의 보정 비선형성 검정이 필요합니다.</p>
+      <div class="extension-models">
+        <div><small>기준 모형 M0</small><p>crim ~ 모든 predictor의 선형항</p></div>
+        <div><small>확장 모형 M1<sub>j</sub></small><p>crim ~ 모든 predictor의 선형항 + I(X<sub>j</sub><sup>2</sup>) + I(X<sub>j</sub><sup>3</sup>)</p></div>
+        <div><small>중첩 F 검정</small><p>H0: γ<sub>2</sub> = γ<sub>3</sub> = 0</p></div>
+      </div>
+      <p class="extension-note">각 연속 predictor X<sub>j</sub>에 대해 M0와 M1<sub>j</sub>를 비교하는 것이 adjusted nonlinearity test(보정 비선형성 검정)입니다. 이 확장 분석은 이번 글에서 실행하지 않았으므로 결과값이나 유의 변수 수를 제시하지 않습니다.</p>
+    </aside>
+    {% endif %}
+
     <aside class="comprehension-gate" aria-labelledby="gate-title-{{ padded }}">
       <div><p class="section-label">COMPREHENSION GATE</p><h3 id="gate-title-{{ padded }}">다음 장으로 넘어가기 전</h3></div>
       <p>{{ chapter.gate_question }}</p>
@@ -165,7 +246,10 @@
   <section class="closing-section" id="final-answer" aria-labelledby="final-title">
     <p class="section-label">분석을 마치며</p>
     <h2 id="final-title">이번 분석에서 확인한 내용</h2>
-    <p>비보정 분석에서는 여러 변수가 crim과 뚜렷한 관계를 보였습니다. 다만 12개 특성을 함께 고려하자 상당수 계수의 크기·부호·유의성이 달라졌고, 5% 기준에서는 zn, dis, rad, medv가 남았습니다. 모든 연속·지수형 predictor에서 cubic 항을 추가했을 때 적합이 개선되는 신호가 있었으며, tax·rad의 VIF와 영향 관측치도 함께 확인할 필요가 있었습니다.</p>
+    <div class="final-status" aria-label="최종 실행 및 모형 상태"><span class="status-badge status-pass"><span aria-hidden="true">✓</span> EXECUTION STATUS: PASS</span><span class="status-badge status-warn"><span aria-hidden="true">!</span> MODEL ADEQUACY: WARN</span></div>
+    <p>비보정 분석에서는 여러 변수가 crim과 뚜렷한 관계를 보였습니다. 다만 12개 특성을 함께 고려하자 상당수 계수의 크기·부호·유의성이 달라졌고, 5% 기준에서는 zn, dis, rad, medv가 남았습니다. 변수별 비보정 관계에서는 cubic 항을 추가했을 때 적합이 개선되는 신호가 있었으며, tax·rad의 VIF와 영향 관측치도 함께 확인할 필요가 있었습니다.</p>
+    <p>변수별 비보정 관계에서 비선형성 신호가 관찰되었습니다. 따라서 현재 다중선형모형의 함수형태를 최종적으로 확정하기 전, 보정된 조건에서의 비선형성 검토가 추가로 필요합니다.</p>
+    <p>분석 파이프라인은 계획된 절차와 출력 계약을 정상적으로 완료했습니다. 그러나 모형 진단에서 비선형성, 공선성 및 영향 관측치 관련 경고가 확인되었으므로, 현재 선형모형을 최종적이고 완전한 설명모형으로 간주해서는 안 됩니다.</p>
     <p>조심스럽게 요약하면, 몇몇 지역 특성은 다른 특성을 함께 고려한 뒤에도 범죄율과 연관되어 있었습니다. 하지만 변수 간 중첩, 비선형성, 영향 관측치가 남아 있으므로 이 결과를 하나의 안정적인 인과효과로 해석하기보다는 조건부 연관성으로 이해하는 편이 적절하다고 생각합니다.</p>
   </section>
 
@@ -203,7 +287,7 @@
       <li data-exercise-part="15(a)"><b>(a) 단순회귀</b><p>각 predictor마다 단순선형회귀를 적합하고 결과를 설명합니다. 어떤 모형에서 통계적으로 유의한 관계가 나타나는지 살펴보고, 관계를 보여주는 그래프도 함께 확인합니다.</p><span>이 글의 분석 3·4</span></li>
       <li data-exercise-part="15(b)"><b>(b) 다중회귀</b><p>모든 predictor를 한꺼번에 사용해 다중선형회귀를 적합합니다. 각 계수의 귀무가설을 기각할 수 있는지 확인하고 결과를 설명합니다.</p><span>이 글의 분석 6</span></li>
       <li data-exercise-part="15(c)"><b>(c) 계수 비교</b><p>(a)의 단순회귀 계수를 x축, (b)의 다중회귀 계수를 y축에 놓은 그래프로 두 결과를 비교합니다.</p><span>이 글의 분석 7</span></li>
-      <li data-exercise-part="15(d)"><b>(d) 비선형성</b><p>각 predictor에 대해 1차·2차·3차 항을 포함한 모형을 적합해 비선형 관계의 근거가 있는지 살펴봅니다.</p><span>이 글의 분석 8</span></li>
+      <li data-exercise-part="15(d)"><b>(d) 비보정 비선형성</b><p>각 predictor를 하나씩 사용한 선형모형과 3차 다항모형을 비교해, 보정 전 관계에서 곡률의 근거가 있는지 살펴봅니다.</p><span>이 글의 분석 8</span></li>
     </ol>
     <section class="exercise-extension" data-exercise-part="확장"><b>이 발표에서 확장한 부분</b><p>문제의 답만 계산하는 데서 그치지 않고 연구질문 계약, QC와 공통 표본, 기술통계, 변수 간 중첩, fixture 삼중 검증, 잔차·영향도·VIF 진단을 분석 0·1·2·5·9에 추가했습니다.</p><p><code>ISLR2::Boston</code>에는 <code>black</code> 변수가 없으므로 현재 13개 변수 계약에 맞춰 분석했습니다.</p></section>
     <p class="exercise-source">문제 문구는 발표용으로 한국어 요약했으며, 구성은 ISLR 제2판 Chapter 3 Exercise 15를 따릅니다.</p>
