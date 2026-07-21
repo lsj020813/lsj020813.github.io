@@ -1,0 +1,21 @@
+<aside class="private-path-control" data-private-path-control hidden aria-label="발표용 경로 표시 설정">
+  <button type="button" class="private-path-toggle" data-private-path-open>절대경로 표시</button>
+  <span class="private-path-mode" data-private-path-mode>공개 경로 모드</span>
+
+  <dialog class="private-path-dialog" data-private-path-dialog aria-labelledby="private-path-title">
+    <form method="dialog" data-private-path-form>
+      <h2 id="private-path-title">발표용 절대경로 보기</h2>
+      <p>로컬에 저장된 암호화 설정을 해제합니다. 비밀번호는 저장하거나 전송하지 않습니다.</p>
+      <label for="private-path-password">비밀번호</label>
+      <input id="private-path-password" name="password" type="password" autocomplete="current-password" required>
+      <p class="private-path-error" data-private-path-error role="status" aria-live="polite"></p>
+      <div class="private-path-actions">
+        <button type="button" data-private-path-cancel>취소</button>
+        <button type="submit">절대경로 표시</button>
+      </div>
+    </form>
+  </dialog>
+</aside>
+
+<link rel="stylesheet" href="{{ '/assets/css/private-path-toggle.css' | relative_url }}">
+<script src="{{ '/assets/js/private-path-toggle.js' | relative_url }}" defer></script>

@@ -25,6 +25,13 @@ package-lock.json
 # Misc
 _sass/vendors
 assets/js/dist
+assets/js/private-paths.local.js
+
+# Local-only publication records and private source posts
+_private_posts/
+CONVERSION_REVIEW.md
+CONVERSION_VALIDATION.md
+PUBLICATION_REDACTION_LOG.md
 
 # Hidden system files
 *~
