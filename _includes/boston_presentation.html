@@ -1,9 +1,10 @@
-<link rel="stylesheet" href="{{ '/assets/css/boston-presentation.css' | relative_url }}?v=20260721b">
+<link rel="stylesheet" href="{{ '/assets/css/boston-presentation.css' | relative_url }}?v=20260721c">
 <link rel="stylesheet" href="{{ '/assets/vendor/katex/katex.min.css' | relative_url }}">
 
 <article class="boston-report" id="boston-report" data-artifact-root="{{ '/assets/data/boston/' | relative_url }}">
   <header class="report-hero" aria-labelledby="report-title">
     <p class="eyebrow">수업 발표를 위한 분석 노트 · ISLR2</p>
+    <button type="button" class="exercise-origin" data-exercise-open="all"><span>ISLR 연습문제 15</span>에서 출발해 분석 과정을 확장했습니다 <b>문제 보기</b></button>
     <h1 id="report-title">Boston 데이터로 따라가 본<br><span>회귀분석의 흐름</span></h1>
     <p class="hero-question">이번 발표에서는 Boston의 여러 지역 특성이 범죄율과 어떻게 연관되는지, 다른 특성을 함께 고려한 뒤에도 관계가 남는지, 그리고 직선으로 설명해도 괜찮은지를 차례로 살펴보았습니다.</p>
     <dl class="hero-facts" aria-label="분석 핵심 사실">
@@ -51,7 +52,7 @@
     <header class="chapter-header">
       <div class="chapter-number" aria-hidden="true">{{ padded }}</div>
       <div class="chapter-heading">
-        <div class="chapter-meta"><span>ANALYSIS {{ padded }}</span><span class="status-badge status-pass"><span aria-hidden="true">✓</span> {{ chapter.status }}</span></div>
+        <div class="chapter-meta"><span>ANALYSIS {{ padded }}</span><span class="status-badge status-pass"><span aria-hidden="true">✓</span> {{ chapter.status }}</span><button type="button" class="exercise-part-button" data-exercise-open="{{ chapter.exercise_part }}">{% if chapter.exercise_part == '확장' %}15번에서 확장{% else %}문제 {{ chapter.exercise_part }} 답안{% endif %}</button></div>
         <h2 id="chapter-title-{{ padded }}">{{ chapter.title }}</h2>
         <p>{{ chapter.question }}</p>
       </div>
@@ -194,9 +195,24 @@
   <button type="button" data-presentation-exit>발표 종료 <kbd>Esc</kbd></button>
 </div>
 
+<dialog class="exercise-dialog" id="exercise-15-dialog" aria-labelledby="exercise-dialog-title">
+  <div class="exercise-dialog-shell">
+    <header><div><p class="section-label">ISLR · CHAPTER 3 · EXERCISE 15</p><h2 id="exercise-dialog-title">Boston 데이터 연습문제 15</h2></div><button type="button" data-exercise-close aria-label="문제 팝업 닫기">×</button></header>
+    <p class="exercise-intro">Boston 데이터에서 지역별 1인당 범죄율 <code>crim</code>을 반응변수로 두고, 나머지 변수를 설명변수로 사용해 다음 질문에 답하는 문제입니다.</p>
+    <ol class="exercise-parts">
+      <li data-exercise-part="15(a)"><b>(a) 단순회귀</b><p>각 predictor마다 단순선형회귀를 적합하고 결과를 설명합니다. 어떤 모형에서 통계적으로 유의한 관계가 나타나는지 살펴보고, 관계를 보여주는 그래프도 함께 확인합니다.</p><span>이 글의 분석 3·4</span></li>
+      <li data-exercise-part="15(b)"><b>(b) 다중회귀</b><p>모든 predictor를 한꺼번에 사용해 다중선형회귀를 적합합니다. 각 계수의 귀무가설을 기각할 수 있는지 확인하고 결과를 설명합니다.</p><span>이 글의 분석 6</span></li>
+      <li data-exercise-part="15(c)"><b>(c) 계수 비교</b><p>(a)의 단순회귀 계수를 x축, (b)의 다중회귀 계수를 y축에 놓은 그래프로 두 결과를 비교합니다.</p><span>이 글의 분석 7</span></li>
+      <li data-exercise-part="15(d)"><b>(d) 비선형성</b><p>각 predictor에 대해 1차·2차·3차 항을 포함한 모형을 적합해 비선형 관계의 근거가 있는지 살펴봅니다.</p><span>이 글의 분석 8</span></li>
+    </ol>
+    <section class="exercise-extension" data-exercise-part="확장"><b>이 발표에서 확장한 부분</b><p>문제의 답만 계산하는 데서 그치지 않고 연구질문 계약, QC와 공통 표본, 기술통계, 변수 간 중첩, fixture 삼중 검증, 잔차·영향도·VIF 진단을 분석 0·1·2·5·9에 추가했습니다.</p><p><code>ISLR2::Boston</code>에는 <code>black</code> 변수가 없으므로 현재 13개 변수 계약에 맞춰 분석했습니다.</p></section>
+    <p class="exercise-source">문제 문구는 발표용으로 한국어 요약했으며, 구성은 ISLR 제2판 Chapter 3 Exercise 15를 따릅니다.</p>
+  </div>
+</dialog>
+
 <script src="{{ '/assets/vendor/katex/katex.min.js' | relative_url }}" defer></script>
 <script src="{{ '/assets/vendor/katex/contrib/auto-render.min.js' | relative_url }}" defer></script>
-<script src="{{ '/assets/js/boston-presentation.js' | relative_url }}?v=20260721b" defer></script>
+<script src="{{ '/assets/js/boston-presentation.js' | relative_url }}?v=20260721c" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     if (window.renderMathInElement) {

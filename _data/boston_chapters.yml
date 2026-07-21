@@ -1,5 +1,6 @@
 - number: 0
   title: "연구질문과 분석 계약"
+  exercise_part: "확장"
   question: "무엇을 묻고, 어디까지 해석하며, 어떤 순서로 검증할 것인가?"
   status: "PASS"
   priority: "10,15,20"
@@ -52,6 +53,7 @@
 
 - number: 1
   title: "데이터 QC와 공통 분석표본 동결"
+  exercise_part: "확장"
   question: "모든 후속 분석이 정말 같은 506개 지역과 같은 행 순서를 쓰는가?"
   status: "PASS"
   priority: "10,15,20"
@@ -103,6 +105,7 @@
 
 - number: 2
   title: "기술통계와 변수 분포"
+  exercise_part: "확장"
   question: "각 변수의 중심·산포·치우침·이상값 후보는 어떤 모습인가?"
   status: "PASS"
   priority: "15,20"
@@ -155,6 +158,7 @@
 
 - number: 3
   title: "crim과 각 설명변수의 관계 형태 탐색"
+  exercise_part: "15(a)"
   question: "직선이 첫 근사로 타당한가, 아니면 곡률·그룹 차이·영향점이 먼저 보이는가?"
   status: "PASS"
   priority: "10,15,20"
@@ -209,6 +213,7 @@
 
 - number: 4
   title: "12개 단순선형회귀"
+  exercise_part: "15(a)"
   question: "다른 특성을 보정하지 않았을 때 각 predictor와 crim의 관계는 어느 방향·크기인가?"
   status: "PASS"
   priority: "10,15,20"
@@ -262,6 +267,7 @@
 
 - number: 5
   title: "설명변수 간 중첩 구조"
+  exercise_part: "확장"
   question: "설명변수들이 서로 얼마나 겹쳐 움직이며, 단순회귀 계수를 함께 설명할 여지가 있는가?"
   status: "PASS"
   priority: "15,20"
@@ -315,6 +321,7 @@
 
 - number: 6
   title: "12개 설명변수를 포함한 다중선형회귀"
+  exercise_part: "15(b)"
   question: "다른 11개 지역 특성을 같은 값으로 둘 때 각 predictor의 조정된 연관성은 남는가?"
   status: "PASS"
   priority: "10,15,20"
@@ -366,6 +373,7 @@
 
 - number: 7
   title: "단순회귀와 다중회귀 계수 비교"
+  exercise_part: "15(c)"
   question: "보정 전후 계수의 크기·부호·유의성이 어디서, 얼마나 바뀌었는가?"
   status: "PASS"
   priority: "10,15,20"
@@ -420,6 +428,7 @@
 
 - number: 8
   title: "비선형성 검정"
+  exercise_part: "15(d)"
   question: "11개 연속·지수형 predictor의 관계를 직선 하나로 설명해도 충분한가?"
   status: "PASS"
   priority: "15,20"
@@ -474,6 +483,7 @@
 
 - number: 9
   title: "잔차·영향도·다중공선성 진단"
+  exercise_part: "확장"
   question: "선형모형은 어디에서 틀리고, 특정 지역이나 predictor 중첩이 결론을 얼마나 제한하는가?"
   status: "PASS"
   priority: "10,15,20"

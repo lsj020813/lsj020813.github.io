@@ -52,6 +52,9 @@
 }
 
 .report-hero h1 span { color: var(--accent); }
+.exercise-origin { display: inline-flex; margin-bottom: 1rem; padding: .38rem .65rem; gap: .28rem; align-items: center; border: 1px solid #b8c8df; border-radius: 999px; background: var(--surface); color: var(--muted); font-size: .72rem; }
+.exercise-origin span { color: var(--accent); font-weight: 800; }
+.exercise-origin b { margin-left: .25rem; color: var(--accent); }
 .hero-question { max-width: 820px; color: #35414d; font-size: clamp(1rem, 1.7vw, 1.3rem); line-height: 1.65; }
 .hero-facts { display: grid; grid-template-columns: repeat(4, 1fr); margin: 2.5rem 0 1.5rem; border-block: 1px solid var(--rule); }
 .hero-facts div { padding: 1.1rem 1rem; border-right: 1px solid var(--rule); }
@@ -100,6 +103,7 @@
 .chapter-header { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(250px,.45fr); gap: clamp(1rem,3vw,2.5rem); padding-bottom: 2.2rem; border-bottom: 2px solid var(--ink); }
 .chapter-number { color: var(--accent); font-size: clamp(4.2rem,10vw,8rem); font-weight: 850; line-height: .76; letter-spacing: -.08em; }
 .chapter-meta { display: flex; gap: .75rem; align-items: center; margin-bottom: .7rem; color: var(--muted); font-size: .68rem; font-weight: 800; letter-spacing: .09em; }
+.exercise-part-button { padding: .18rem .45rem; border: 1px solid #b8c8df; border-radius: 999px; background: transparent; color: var(--accent); font-size: .62rem; font-weight: 750; letter-spacing: 0; white-space: nowrap; }
 .chapter-heading h2 { margin-bottom: .75rem; color: var(--ink); font-size: clamp(1.8rem,3.7vw,3.15rem); line-height: 1.12; letter-spacing: -.035em; }
 .chapter-heading > p { max-width: 660px; margin: 0; color: #44515e; font-size: 1.05rem; }
 .status-badge { display: inline-flex; width: max-content; padding: .22rem .52rem; border-radius: 999px; gap: .3rem; align-items: center; font-size: .67rem; font-weight: 850; letter-spacing: .06em; white-space: nowrap; }
@@ -217,6 +221,22 @@
 .presentation-toolbar small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .presentation-toolbar progress { width: 100%; accent-color: #6f9fe3; }
 .presentation-toolbar kbd { padding: .1rem .25rem; border: 1px solid #637384; border-radius: 2px; background: #273543; color: white; font-size: .63rem; }
+
+.exercise-dialog { width: min(680px,calc(100vw - 2rem)); max-height: min(82vh,760px); padding: 0; overflow: hidden; border: 1px solid #9fa8b2; border-radius: 5px; background: var(--surface); color: var(--ink); }
+.exercise-dialog::backdrop { background: rgba(15,22,30,.66); }
+.exercise-dialog-shell { max-height: min(82vh,760px); padding: 1.25rem; overflow-y: auto; }
+.exercise-dialog header { position: sticky; top: -1.25rem; z-index: 2; display: flex; margin: -1.25rem -1.25rem 1rem; padding: 1rem 1.25rem; gap: 1rem; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--rule); background: var(--surface); }
+.exercise-dialog h2 { margin: 0; color: var(--ink); font-size: 1.45rem; }
+.exercise-dialog header button { display: grid; width: 2.2rem; height: 2.2rem; flex: 0 0 auto; place-items: center; border: 1px solid var(--rule); border-radius: 50%; background: transparent; color: var(--ink); font-size: 1.3rem; }
+.exercise-intro { color: var(--muted); font-size: .88rem; }
+.exercise-parts { margin: 1rem 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+.exercise-parts li, .exercise-extension { padding: .9rem; border-bottom: 1px solid var(--rule); transition: background .15s ease, box-shadow .15s ease; }
+.exercise-parts li b, .exercise-extension b { color: var(--ink); font-size: .9rem; }
+.exercise-parts li p, .exercise-extension p { margin: .35rem 0 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
+.exercise-parts li span { display: inline-block; margin-top: .45rem; padding: .15rem .4rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .66rem; font-weight: 750; }
+.exercise-extension { border-left: 3px solid var(--accent); background: var(--paper); }
+.exercise-dialog [data-exercise-part].is-related-part { background: var(--accent-soft); box-shadow: inset 4px 0 var(--accent); }
+.exercise-source { margin: 1rem 0 0; color: var(--muted); font-size: .68rem; }
 
 body.boston-presentation-active { overflow: hidden; background: #e9edf2; }
 body.boston-presentation-active .boston-report { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100vh; margin: 0; transform: none; overflow-y: auto; background: var(--surface); }

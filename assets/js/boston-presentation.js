@@ -165,6 +165,22 @@
     }
   });
 
+  const exerciseDialog = document.querySelector("#exercise-15-dialog");
+  const openExercise = (part) => {
+    exerciseDialog.querySelectorAll("[data-exercise-part]").forEach((item) => {
+      item.classList.toggle("is-related-part", part !== "all" && item.dataset.exercisePart === part);
+    });
+    if (!exerciseDialog.open) exerciseDialog.showModal();
+    const related = exerciseDialog.querySelector(".is-related-part");
+    if (related) related.scrollIntoView({ block: "center", behavior: "smooth" });
+  };
+  document.querySelectorAll("[data-exercise-open]").forEach((button) => {
+    button.addEventListener("click", () => openExercise(button.dataset.exerciseOpen));
+  });
+  exerciseDialog.addEventListener("click", (event) => {
+    if (event.target === exerciseDialog || event.target.closest("[data-exercise-close]")) exerciseDialog.close();
+  });
+
   let presentationIndex = 0;
   let presentationStep = 0;
   const toolbar = document.querySelector("[data-presentation-toolbar]");
