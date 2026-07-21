@@ -5,6 +5,7 @@ categories: [Study, Genomics]
 tags: [deeprvat, rare-variant, annotation, splicing, genomics]
 description: "DeepRVAT annotation 문서를 읽다가, synonymous variant와 splicing motif를 variant weight 설계에서 어떻게 다뤄야 할지 정리한 노트."
 math: true
+published: false
 ---
 
 DeepRVAT의 [annotation 문서](https://github.com/PMBio/deeprvat/blob/main/docs/annotations.md)를 읽다가 rare variant에 weight를 줄 때 무엇을 기준으로 삼아야 하는지 막혔다. 처음에는 `synonymous`, `missense`, `splice-disrupting`, `protein-truncating` 같은 label을 영향 크기의 순서처럼 읽고 있었다. 그런데 splicing 쪽을 들여다보면 이들을 한 줄에 세우기 어렵다.

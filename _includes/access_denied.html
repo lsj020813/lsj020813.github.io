@@ -1,0 +1,37 @@
+<section class="access-denied" role="alert" aria-labelledby="access-denied-title">
+  <p class="access-denied-code" aria-hidden="true">403</p>
+  <h1 id="access-denied-title">읽기 권한 없음</h1>
+  <p>현재 공개하지 않는 글입니다.</p>
+  <a href="{{ '/' | relative_url }}">공개 글로 돌아가기</a>
+</section>
+
+<style>
+  .access-denied {
+    max-width: 38rem;
+    margin: clamp(3rem, 10vw, 8rem) auto;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-top: 4px solid var(--link-color);
+    text-align: center;
+  }
+
+  .access-denied-code {
+    margin-bottom: 0.5rem;
+    color: var(--text-muted-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  .access-denied h1 {
+    margin-bottom: 1rem;
+  }
+
+  .access-denied > p:last-of-type {
+    color: var(--text-muted-color);
+  }
+
+  .access-denied a {
+    display: inline-block;
+    margin-top: 1rem;
+  }
+</style>

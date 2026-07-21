@@ -16,7 +16,7 @@ timezone: Asia/Seoul
 
 title: LEESANGJUN # the main title
 
-tagline: 개발과 공부를 기록합니다 # it will display as the subtitle
+tagline: 흔적들 # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   LEESANGJUN의 GitHub Pages 블로그입니다.
